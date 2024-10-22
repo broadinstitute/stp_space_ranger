@@ -13,7 +13,7 @@ RUN apt-get update && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -o spaceranger-3.1.1.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-3.1.1.tar.gz?Expires=1727507164&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=Jh2IA~hMlpPleI0nJA-OdMnihmUvPfOSwaTmLkuvClmKUgG0C97k3GMnI47ORDRj~p6HKYwNL6P0vTYnydMctlFMbr7a5DI1ZbhkfLasA7QcNXAoen7IQatm6QKtLPyvruP3JCe2lBInjeDniHOAZmSn8bsJw8yUWCTOMMGiTQy1B0ctQpnEEOEZ6003xj4aMTVBtAup3nUJ-9RNRzan6jTdAYhhAr7DtYtez8GgxzrQJ4bltNwXn8G7hOKCHytG-bvbSdLI8y4pyC8SHGumtab7hdLEZXg2QuYOWee1FdoyZ9WJdLPLF-6~oLgs5SHh2HS6sSz5vNKNy6oFYoZCFg__"
+RUN curl -o spaceranger-3.1.1.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-3.1.1.tar.gz?Expires=1729669245&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=cbPPlaDwRCWYtJAmVNgqIf8Uq70PgSr7ndSi-3ATe~fbRZ766IFSjOaaCejEQOWyODDgiReR5sozhEeG1fwAUUkPdsyb-9W8Gzds2TPUR5QpcB86IAEjGuiZsV26gPPpTQSVLmbGsfNpbeCtUq0m5pQIkMQuTdpLomj1ZFTz5s5wnxjdDufP9ZT10TIJqU8SjuaGmi79nzh8AKVuCdJZXsth3xY11PAa6FXPh3VTlwAC8eBVLxicWnk87MbCh43W-e-HgXjriZ0ek4rG8X5nkoelUfsbAE8RJhuJy6JCxCNnIumI6cdpgdOMtw5pml70hk83wQhvUvhIbhTeyjXVSQ__"
 RUN tar -zxvf spaceranger-3.1.1.tar.gz
 
 ENV PATH="/spaceranger-3.1.1/:${PATH}"
