@@ -1,6 +1,6 @@
 version 1.0
 
-import "./space_ranger.wdl" as SPACE_RANGER
+import "space_ranger.wdl" as SPACE_RANGER
 
 workflow MAIN_WORKFLOW {
 
