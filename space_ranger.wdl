@@ -18,9 +18,10 @@ task space_ranger {
 
         fastq_files_directory=$(dirname ~{fastq_read1_file_path})
 
-        transcriptome_directory="transcriptome_directory"
-        mkdir -p "$transcriptome_directory"
-        unzip ~{transcriptome_file_path} -d "$transcriptome_directory"
+        transcriptome_directory=$(dirname ~{transcriptome_file_path})
+        tar -xzf ~{transcriptome_file_path} -C "$transcriptome_directory"
+        unzipped_dir_name=$(basename ~{transcriptome_file_path} .tar.gz)
+        unzipped_transcriptome_dir="$transcriptome_directory/$unzipped_dir_name/"
 
         spaceranger count \
                 --id ~{sample_id} \
@@ -28,7 +29,7 @@ task space_ranger {
                 --cytaimage ~{cytassist_image_path} \
                 --image ~{he_image_path} \
                 --create-bam ~{bam_file_save} \
-                --transcriptome "$transcriptome_directory" \
+                --transcriptome "$unzipped_transcriptome_dir" \
                 --probe-set ~{probe_set_file_path}
 
         mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/outs/~{sample_id}_binned_outputs.tar.gz"
