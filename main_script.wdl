@@ -12,7 +12,7 @@ workflow MAIN_WORKFLOW {
         Array[String] bam_file_save  # "true" or "false"
         Array[File] transcriptome_file_path
         Array[File] probe_set_file_path
-        Float amount_of_VMs
+        Int amount_of_VMs
         Array[String] prefix_list_of_fastqs
     }
 
