@@ -69,14 +69,13 @@ task space_ranger {
             fi
         fi
 
-        tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/outs/binned_outputs"
-        tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "/cromwell_root/~{sample_id}/outs/spatial"
+        tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" binned_outputs
+        tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" -C "/cromwell_root/~{sample_id}/outs" spatial
 
-        rm -r "/cromwell_root/~{sample_id}/outs/binned_outputs"
-        rm -r "/cromwell_root/~{sample_id}/outs/spatial"
+        rm -rf "/cromwell_root/~{sample_id}/outs/binned_outputs"
+        rm -rf "/cromwell_root/~{sample_id}/outs/spatial"
 
         mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/outs/~{sample_id}_binned_outputs.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/cloupe_008um.cloupe" "/cromwell_root/~{sample_id}/outs/~{sample_id}_cloupe_008um.cloupe"
         mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/outs/~{sample_id}_feature_slice.h5"
         mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "/cromwell_root/~{sample_id}/outs/~{sample_id}_metrics_summary.csv"
         mv "/cromwell_root/~{sample_id}/outs/molecule_info.h5" "/cromwell_root/~{sample_id}/outs/~{sample_id}_molecule_info.h5"
@@ -87,7 +86,6 @@ task space_ranger {
     >>>
 
     output {
-        Array[File] cloupe_file = glob("/cromwell_root/*/outs/*.cloupe")
         Array[File] h5_file = glob("/cromwell_root/*/outs/*.h5")
         Array[File] csv_file = glob("/cromwell_root/*/outs/*.csv")
         Array[File] zip_file = glob("/cromwell_root/*/outs/*.tar.gz")
