@@ -84,11 +84,11 @@ task space_ranger {
     >>>
 
     output {
-        File cloupe_file = glob("/cromwell_root/*/outs/*.cloupe")[0]
-        File h5_file = glob("/cromwell_root/*/outs/*.h5")[0]
-        File csv_file = glob("/cromwell_root/*/outs/*.csv")[0]
-        File zip_file = glob("/cromwell_root/*/outs/*.tar.gz")[0]
-        File html_file = glob("/cromwell_root/*/outs/*.html")[0]
+        Array[File] cloupe_file = glob("/cromwell_root/*/outs/*.cloupe")
+        Array[File] h5_file = glob("/cromwell_root/*/outs/*.h5")
+        Array[File] csv_file = glob("/cromwell_root/*/outs/*.csv")
+        Array[File] zip_file = glob("/cromwell_root/*/outs/*.tar.gz")
+        Array[File] html_file = glob("/cromwell_root/*/outs/*.html")
     }
 
     runtime {
