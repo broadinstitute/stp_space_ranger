@@ -72,6 +72,9 @@ task space_ranger {
         tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/outs/binned_outputs"
         tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "/cromwell_root/~{sample_id}/outs/spatial"
 
+        rm -r "/cromwell_root/~{sample_id}/outs/binned_outputs"
+        rm -r "/cromwell_root/~{sample_id}/outs/spatial"
+
         mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/outs/~{sample_id}_binned_outputs.tar.gz"
         mv "/cromwell_root/~{sample_id}/outs/cloupe_008um.cloupe" "/cromwell_root/~{sample_id}/outs/~{sample_id}_cloupe_008um.cloupe"
         mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/outs/~{sample_id}_feature_slice.h5"
