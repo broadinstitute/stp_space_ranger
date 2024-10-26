@@ -16,9 +16,7 @@ task space_ranger {
     }
 
     command <<<
-
-        spaceranger testrun --id=tiny
-
+    
         fastq_files_directory=$(dirname ~{fastq_read1_file_path})
 
         transcriptome_directory=$(dirname ~{transcriptome_file_path})
