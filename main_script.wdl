@@ -16,11 +16,11 @@ workflow MAIN_WORKFLOW {
         String bam_file_save  # "true" or "false"
     }
 
+    File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
+    File dummy_registration_json_file = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"
+    
     call SPACE_RANGER.space_ranger {
 
-        File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
-        File dummy_registration_json_file = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"
-    
         input:
             cytassist_image_path = cytassist_image_path,
             he_image_path = if defined(he_image_path) then select_first([he_image_path]) else dummy_he_image_path,
