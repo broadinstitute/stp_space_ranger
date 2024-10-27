@@ -39,6 +39,8 @@ workflow MAIN_WORKFLOW {
             transcriptome_file_path = transcriptome_file_path,
             probe_set_file_path = probe_set_file_path,
             sample_id = sample_id,
-            bam_file_save = bam_file_save
+            bam_file_save = bam_file_save,
+            dummy_he_image_path = dummy_he_image_path,
+            dummy_registration_json_file = dummy_registration_json_file
     }
 }
