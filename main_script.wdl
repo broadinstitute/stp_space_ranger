@@ -18,8 +18,8 @@ workflow MAIN_WORKFLOW {
     File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
     File dummy_registration_json_file = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"
 
-    File? transcriptome_file_path
-    File? probe_set_file_path
+    File? transcriptome_file_path = "None"
+    File? probe_set_file_path = "None"
 
     if (sample_type == "mouse") {
         transcriptome_file_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/mouse/refdata-gex-mm10-2020-A.tar.gz"
