@@ -73,6 +73,11 @@ task space_ranger {
         rm -rf "/cromwell_root/~{sample_id}/outs/binned_outputs"
         rm -rf "/cromwell_root/~{sample_id}/outs/spatial"
 
+        if [[ ~{bam_file_save} == "true" ]]; then
+            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "/cromwell_root/~{sample_id}/outs/~{sample_id}_possorted_genome_bam.bam"
+            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "/cromwell_root/~{sample_id}/outs/~{sample_id}_possorted_genome_bam.bam.bai"
+        fi
+
         mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/outs/~{sample_id}_binned_outputs.tar.gz"
         mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/outs/~{sample_id}_feature_slice.h5"
         mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "/cromwell_root/~{sample_id}/outs/~{sample_id}_metrics_summary.csv"
@@ -84,10 +89,11 @@ task space_ranger {
     >>>
 
     output {
-        Array[File] h5_file = glob("/cromwell_root/*/outs/*.h5")
-        Array[File] csv_file = glob("/cromwell_root/*/outs/*.csv")
-        Array[File] zip_file = glob("/cromwell_root/*/outs/*.tar.gz")
+        Array[File] h5_files = glob("/cromwell_root/*/outs/*.h5")
+        Array[File] csv_files = glob("/cromwell_root/*/outs/*.csv")
+        Array[File] zip_files = glob("/cromwell_root/*/outs/*.tar.gz")
         Array[File] html_file = glob("/cromwell_root/*/outs/*.html")
+        Array[File]? bam_files = glob("/cromwell_root/*/outs/*.bam*")
     }
 
     runtime {
