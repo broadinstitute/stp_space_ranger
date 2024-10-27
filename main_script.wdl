@@ -10,15 +10,24 @@ workflow MAIN_WORKFLOW {
         File? registration_json_file
         File fastq_read1_file_path
         File fastq_read2_file_path
-        File transcriptome_file_path
-        File probe_set_file_path
+        String sample_type # human or mouse
         String sample_id
         String bam_file_save  # "true" or "false"
     }
 
     File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
     File dummy_registration_json_file = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"
-    
+
+    if (sample_type == "mouse") {
+        File transcriptome_file_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/mouse/refdata-gex-mm10-2020-A.tar.gz"
+        File probe_set_file_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/mouse/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
+    }
+
+    if (sample_type == "human") {
+        File transcriptome_file_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/human/refdata-gex-GRCh38-2020-A.tar.gz"
+        File probe_set_file_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/human/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
+    }
+
     call SPACE_RANGER.space_ranger {
 
         input:
@@ -30,8 +39,6 @@ workflow MAIN_WORKFLOW {
             transcriptome_file_path = transcriptome_file_path,
             probe_set_file_path = probe_set_file_path,
             sample_id = sample_id,
-            bam_file_save = bam_file_save,
-            dummy_he_image_path = dummy_he_image_path,
-            dummy_registration_json_file = dummy_registration_json_file
+            bam_file_save = bam_file_save
     }
 }
