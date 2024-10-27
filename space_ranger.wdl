@@ -11,6 +11,8 @@ task space_ranger {
         File probe_set_file_path
         String sample_id
         String bam_file_save  # "true" or "false"
+        File dummy_he_image_path
+        File dummy_registration_json_file
     }
 
     command <<<
