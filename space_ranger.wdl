@@ -67,6 +67,10 @@ task space_ranger {
             fi
         fi
 
+        mkdir -p "./qc/~{sample_id}"
+
+        mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "./qc/~{sample_id}/binned_outputs.tar.gz"
+
         tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" binned_outputs
         tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" -C "/cromwell_root/~{sample_id}/outs" spatial
 
@@ -74,26 +78,24 @@ task space_ranger {
         rm -rf "/cromwell_root/~{sample_id}/outs/spatial"
 
         if [[ ~{bam_file_save} == "true" ]]; then
-            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "/cromwell_root/~{sample_id}/outs/~{sample_id}_possorted_genome_bam.bam"
-            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "/cromwell_root/~{sample_id}/outs/~{sample_id}_possorted_genome_bam.bam.bai"
+            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "./qc/~{sample_id}/possorted_genome_bam.bam"
+            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "./qc/~{sample_id}/possorted_genome_bam.bam.bai"
         fi
 
-        mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/outs/~{sample_id}_binned_outputs.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/outs/~{sample_id}_feature_slice.h5"
-        mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "/cromwell_root/~{sample_id}/outs/~{sample_id}_metrics_summary.csv"
-        mv "/cromwell_root/~{sample_id}/outs/molecule_info.h5" "/cromwell_root/~{sample_id}/outs/~{sample_id}_molecule_info.h5"
-        mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "/cromwell_root/~{sample_id}/outs/~{sample_id}_probe_set.csv"
-        mv "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "/cromwell_root/~{sample_id}/outs/~{sample_id}_spatial.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/web_summary.html" "/cromwell_root/~{sample_id}/outs/~{sample_id}_web_summary.html"
+        mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "./qc/~{sample_id}/binned_outputs.tar.gz"
+        mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "./qc/~{sample_id}/feature_slice.h5"
+        mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "./qc/~{sample_id}/metrics_summary.csv"
+        mv "/cromwell_root/~{sample_id}/outs/molecule_info.h5" "./qc/~{sample_id}/molecule_info.h5"
+        mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "./qc/~{sample_id}/probe_set.csv"
+        mv "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "./qc/~{sample_id}/spatial.tar.gz"
+        mv "/cromwell_root/~{sample_id}/outs/web_summary.html" "./qc/~{sample_id}/web_summary.html"
 
     >>>
 
     output {
-        Array[File] h5_files = glob("/cromwell_root/*/outs/*.h5")
-        Array[File] csv_files = glob("/cromwell_root/*/outs/*.csv")
-        Array[File] zip_files = glob("/cromwell_root/*/outs/*.tar.gz")
-        Array[File] html_file = glob("/cromwell_root/*/outs/*.html")
-        Array[File]? bam_files = glob("/cromwell_root/*/outs/*.bam*")
+
+        Array[File] space_ranger_outputs = ["./qc/~{sample_id}/binned_outputs.tar.gz", "./qc/~{sample_id}/feature_slice.h5", "./qc/~{sample_id}/metrics_summary.csv", "./qc/~{sample_id}/molecule_info.h5", "./qc/~{sample_id}/probe_set.csv", "./qc/~{sample_id}/spatial.tar.gz", "./qc/~{sample_id}/web_summary.html"] + select_all([if ~{bam_file_save} == "true" then "./qc/~{sample_id}/possorted_genome_bam.bam", "./qc/~{sample_id}/possorted_genome_bam.bam.bai" else ""])
+        
     }
 
     runtime {
