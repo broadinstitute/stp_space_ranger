@@ -101,7 +101,7 @@ task space_ranger {
             "./qc/~{sample_id}/probe_set.csv",
             "./qc/~{sample_id}/spatial.tar.gz",
             "./qc/~{sample_id}/web_summary.html"
-        ] + (if ~{bam_file_save} == "true" then ["./qc/~{sample_id}/possorted_genome_bam.bam", "./qc/~{sample_id}/possorted_genome_bam.bam.bai"] else [])
+        ] + (if ~{bam_file_save} == "true" then ["./qc/~{sample_id}/possorted_genome_bam.bam", "./qc/~{sample_id}/possorted_genome_bam.bam.bai"] else [""])
     }
 
 
