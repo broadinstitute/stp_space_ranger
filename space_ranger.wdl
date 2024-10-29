@@ -96,7 +96,7 @@ task space_ranger {
         Array[File?] space_ranger_outputs = [
             "./~{sample_id}/binned_outputs.tar.gz",
             "./~{sample_id}/spatial.tar.gz",
-            "./~{sample_id}/cloupe_008um.cloupe"
+            "./~{sample_id}/cloupe_008um.cloupe",
             "./~{sample_id}/feature_slice.h5",
             "./~{sample_id}/molecule_info.h5",
             "./~{sample_id}/metrics_summary.csv",
@@ -106,7 +106,6 @@ task space_ranger {
             "./~{sample_id}/web_summary.html"
         ]
     }
-
 
     runtime {
         docker: "jishar7/space_ranger@sha256:538f88a9f9cfe997b0bf7480fea05a724267c1f13ce1c406e65e16bdcbc8db04"
