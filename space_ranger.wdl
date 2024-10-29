@@ -93,10 +93,17 @@ task space_ranger {
     >>>
 
     output {
-
-        Array[File] space_ranger_outputs = ["./qc/~{sample_id}/binned_outputs.tar.gz", "./qc/~{sample_id}/feature_slice.h5", "./qc/~{sample_id}/metrics_summary.csv", "./qc/~{sample_id}/molecule_info.h5", "./qc/~{sample_id}/probe_set.csv", "./qc/~{sample_id}/spatial.tar.gz", "./qc/~{sample_id}/web_summary.html"] + select_all([if ~{bam_file_save} == "true" then "./qc/~{sample_id}/possorted_genome_bam.bam", "./qc/~{sample_id}/possorted_genome_bam.bam.bai" else ""])
-        
+        Array[File] space_ranger_outputs = [
+            "./qc/~{sample_id}/binned_outputs.tar.gz",
+            "./qc/~{sample_id}/feature_slice.h5",
+            "./qc/~{sample_id}/metrics_summary.csv",
+            "./qc/~{sample_id}/molecule_info.h5",
+            "./qc/~{sample_id}/probe_set.csv",
+            "./qc/~{sample_id}/spatial.tar.gz",
+            "./qc/~{sample_id}/web_summary.html"
+        ] + (if ~{bam_file_save} == "true" then ["./qc/~{sample_id}/possorted_genome_bam.bam", "./qc/~{sample_id}/possorted_genome_bam.bam.bai"] else [])
     }
+
 
     runtime {
         docker: "jishar7/space_ranger@sha256:538f88a9f9cfe997b0bf7480fea05a724267c1f13ce1c406e65e16bdcbc8db04"
