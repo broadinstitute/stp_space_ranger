@@ -67,41 +67,44 @@ task space_ranger {
             fi
         fi
 
-        mkdir -p "./qc/~{sample_id}"
-
-        mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "./qc/~{sample_id}/binned_outputs.tar.gz"
-
         tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" binned_outputs
         tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" -C "/cromwell_root/~{sample_id}/outs" spatial
+
+        mv "/cromwell_root/~{sample_id}/outs/binned_outputs/square_008um/cloupe.cloupe" "/cromwell_root/~{sample_id}/cloupe_008um.cloupe"
 
         rm -rf "/cromwell_root/~{sample_id}/outs/binned_outputs"
         rm -rf "/cromwell_root/~{sample_id}/outs/spatial"
 
         if [[ ~{bam_file_save} == "true" ]]; then
-            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "./qc/~{sample_id}/possorted_genome_bam.bam"
-            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "./qc/~{sample_id}/possorted_genome_bam.bam.bai"
+            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam"
+            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam.bai"
         fi
+        
+        mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/binned_outputs.tar.gz"
+        mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/feature_slice.h5"
+        mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "/cromwell_root/~{sample_id}/metrics_summary.csv"
+        mv "/cromwell_root/~{sample_id}/outs/molecule_info.h5" "/cromwell_root/~{sample_id}/molecule_info.h5"
+        mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "/cromwell_root/~{sample_id}/probe_set.csv"
+        mv "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "/cromwell_root/~{sample_id}/spatial.tar.gz"
+        mv "/cromwell_root/~{sample_id}/outs/web_summary.html" "/cromwell_root/~{sample_id}/web_summary.html"
 
-        mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "./qc/~{sample_id}/binned_outputs.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "./qc/~{sample_id}/feature_slice.h5"
-        mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "./qc/~{sample_id}/metrics_summary.csv"
-        mv "/cromwell_root/~{sample_id}/outs/molecule_info.h5" "./qc/~{sample_id}/molecule_info.h5"
-        mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "./qc/~{sample_id}/probe_set.csv"
-        mv "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "./qc/~{sample_id}/spatial.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/web_summary.html" "./qc/~{sample_id}/web_summary.html"
+        rm -rf "/cromwell_root/~{sample_id}/outs"
 
     >>>
 
     output {
-        Array[File] space_ranger_outputs = [
-            "./qc/~{sample_id}/binned_outputs.tar.gz",
-            "./qc/~{sample_id}/feature_slice.h5",
-            "./qc/~{sample_id}/metrics_summary.csv",
-            "./qc/~{sample_id}/molecule_info.h5",
-            "./qc/~{sample_id}/probe_set.csv",
-            "./qc/~{sample_id}/spatial.tar.gz",
-            "./qc/~{sample_id}/web_summary.html"
-        ] + (if ~{bam_file_save} == "true" then ["./qc/~{sample_id}/possorted_genome_bam.bam", "./qc/~{sample_id}/possorted_genome_bam.bam.bai"] else [""])
+        Array[File?] space_ranger_outputs = [
+            "/cromwell_root/~{sample_id}/binned_outputs.tar.gz",
+            "/cromwell_root/~{sample_id}/spatial.tar.gz",
+            "/cromwell_root/~{sample_id}/cloupe_008um.cloupe"
+            "/cromwell_root/~{sample_id}/feature_slice.h5",
+            "/cromwell_root/~{sample_id}/molecule_info.h5",
+            "/cromwell_root/~{sample_id}/metrics_summary.csv",
+            "/cromwell_root/~{sample_id}/probe_set.csv",
+            "/cromwell_root/~{sample_id}/possorted_genome_bam.bam",
+            "/cromwell_root/~{sample_id}/possorted_genome_bam.bam.bai",
+            "/cromwell_root/~{sample_id}/web_summary.html",
+        ]
     }
 
 
