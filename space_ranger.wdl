@@ -94,16 +94,16 @@ task space_ranger {
 
     output {
         Array[File?] space_ranger_outputs = [
-            "/cromwell_root/~{sample_id}/binned_outputs.tar.gz",
-            "/cromwell_root/~{sample_id}/spatial.tar.gz",
-            "/cromwell_root/~{sample_id}/cloupe_008um.cloupe"
-            "/cromwell_root/~{sample_id}/feature_slice.h5",
-            "/cromwell_root/~{sample_id}/molecule_info.h5",
-            "/cromwell_root/~{sample_id}/metrics_summary.csv",
-            "/cromwell_root/~{sample_id}/probe_set.csv",
-            "/cromwell_root/~{sample_id}/possorted_genome_bam.bam",
-            "/cromwell_root/~{sample_id}/possorted_genome_bam.bam.bai",
-            "/cromwell_root/~{sample_id}/web_summary.html",
+            "./~{sample_id}/binned_outputs.tar.gz",
+            "./~{sample_id}/spatial.tar.gz",
+            "./~{sample_id}/cloupe_008um.cloupe"
+            "./~{sample_id}/feature_slice.h5",
+            "./~{sample_id}/molecule_info.h5",
+            "./~{sample_id}/metrics_summary.csv",
+            "./~{sample_id}/probe_set.csv",
+            "./~{sample_id}/possorted_genome_bam.bam",
+            "./~{sample_id}/possorted_genome_bam.bam.bai",
+            "./~{sample_id}/web_summary.html"
         ]
     }
 
