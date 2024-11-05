@@ -5,19 +5,31 @@ task space_ranger {
         File cytassist_image_path
         File? he_image_path
         File? registration_json_file
-        File fastq_read1_file_path
-        File fastq_read2_file_path
+        File? fastq_read1_file_path
+        File? fastq_read2_file_path
+        File? fastq_reads_compressed_directory_path
         File? transcriptome_file_path
         File? probe_set_file_path
         String sample_id
         String bam_file_save  # "true" or "false"
         File dummy_he_image_path
         File dummy_registration_json_file
+        File dummy_text_file_path
     }
 
     command <<<
     
-        fastq_files_directory=$(dirname ~{fastq_read1_file_path})
+        if [ ~{fastq_read1_file_path} != ~{dummy_text_file_path} ]; then
+            fastq_files_directory=$(dirname ~{fastq_read1_file_path})
+        elif [ ~{fastq_reads_compressed_directory_path} != ~{dummy_text_file_path} ]; then
+            compressed_dir=$(dirname ~{fastq_reads_compressed_directory_path})
+            tar -xzf ~{fastq_reads_compressed_directory_path} -C "$compressed_dir"
+            unzipped_fastq_dir_name=$(basename ~{fastq_reads_compressed_directory_path} .tar.gz)
+            fastq_files_directory="$compressed_dir/$unzipped_fastq_dir_name"
+        else
+            echo "Error: Either fastq_read1_file_path/fastq_read2_file_path or fastq_reads_compressed_directory_path must be provided." >&2
+            exit 1
+        fi
 
         transcriptome_directory=$(dirname ~{transcriptome_file_path})
         tar -xzf ~{transcriptome_file_path} -C "$transcriptome_directory"
