@@ -10,22 +10,30 @@ RUN apt-get update && \
     libcurl4-openssl-dev \
     zlib1g-dev \
     xz-utils \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -o spaceranger-3.1.1.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-3.1.1.tar.gz?Expires=1729669245&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=cbPPlaDwRCWYtJAmVNgqIf8Uq70PgSr7ndSi-3ATe~fbRZ766IFSjOaaCejEQOWyODDgiReR5sozhEeG1fwAUUkPdsyb-9W8Gzds2TPUR5QpcB86IAEjGuiZsV26gPPpTQSVLmbGsfNpbeCtUq0m5pQIkMQuTdpLomj1ZFTz5s5wnxjdDufP9ZT10TIJqU8SjuaGmi79nzh8AKVuCdJZXsth3xY11PAa6FXPh3VTlwAC8eBVLxicWnk87MbCh43W-e-HgXjriZ0ek4rG8X5nkoelUfsbAE8RJhuJy6JCxCNnIumI6cdpgdOMtw5pml70hk83wQhvUvhIbhTeyjXVSQ__"
-RUN tar -zxvf spaceranger-3.1.1.tar.gz
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+
+RUN apt-get update && \
+    apt-get install -y google-cloud-sdk && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN gcloud --version && \
+    gcloud info && \
+    gcloud config list
+
+RUN curl -o spaceranger-3.1.1.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-3.1.1.tar.gz?Expires=1731124249&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=LgOfBdPz5ZMiaabgULkJOMKmr9o1jSJZC5ieHWdZQo3jbpDVi4IZDdgtkt5BbxRAV9ANaipHxVVeRdBreXR1qRsIBnoM8MxFqhtcEDuKPef7mqV4VlkIuUNjhDPfZfYdeBkIaF3liznWUK1ak3bQyw-s9bxUYWsQxfK5VCJ602beUulMA0JntUF6u-aQyzgZNSiP2D0xWQM8EMkP-v7MHv91Bc9EtPgPRhiZ4O5ewu-Xo~Zpe-BvFWOznJIeH4de4bvNp1YC9T0mGb-l302zxYyDCvaDbXRZZWwvCtU8NQKdydDikDwWrUlAL9eCka4QU5TkCILUd0iM4dwQb2fzbw__" && \
+    tar -zxvf spaceranger-3.1.1.tar.gz && \
+    rm spaceranger-3.1.1.tar.gz
 
 ENV PATH="/spaceranger-3.1.1/:${PATH}"
 
 RUN spaceranger --help
-
-RUN pip install --upgrade pip
-RUN pip install --verbose \
-    cellpose==3.0.9 \
-    scikit-image==0.23.2 \
-    opencv-python==4.10.0.82 \
-    matplotlib==3.9.0 \
-    numpy==1.26.4
 
 ENTRYPOINT ["/bin/bash", "-l", "-c", "/bin/bash"]
