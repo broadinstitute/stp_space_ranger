@@ -115,7 +115,7 @@ task space_ranger {
     }
 
     runtime {
-        docker: "jishar7/space_ranger@sha256:538f88a9f9cfe997b0bf7480fea05a724267c1f13ce1c406e65e16bdcbc8db04"
+        docker: "jishar7/space_ranger@sha256:7a8cda3d8746e78666c3ef91c919f3ad94ff9bec11a495e8e9df0034b8cc5b6a"
         memory: "130GB"
         cpu: 10
         preemptible: 2
