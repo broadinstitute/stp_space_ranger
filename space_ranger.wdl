@@ -3,8 +3,6 @@ task space_ranger {
 
     input {       
         File cytassist_image_path
-        File? he_image_path
-        File? registration_json_file
         File fastq_read1_file_path
         File fastq_read2_file_path
         File? transcriptome_file_path
