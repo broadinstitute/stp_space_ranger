@@ -20,7 +20,7 @@ task space_ranger {
         gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
 
         fastq_folder_name=$(basename "$fastq_reads_directory_path")
-        fastq_directory_path_in_cromwell="/cromwell_root/$folder_name"
+        fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
 
         transcriptome_directory=$(dirname ~{transcriptome_file_path})
         tar -xzf ~{transcriptome_file_path} -C "$transcriptome_directory"
