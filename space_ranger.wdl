@@ -16,7 +16,8 @@ task space_ranger {
     }
 
     command <<<
-
+    
+        export CLOUDSDK_AUTH_CREDENTIALS_CACHE_ENABLED=False
         gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
 
         fastq_folder_name=$(basename "$fastq_reads_directory_path")
