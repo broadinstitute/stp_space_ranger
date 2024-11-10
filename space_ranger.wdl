@@ -17,8 +17,13 @@ task space_ranger {
 
     command <<<
     
-        export CLOUDSDK_AUTH_CREDENTIALS_CACHE_ENABLED=False
+        gcloud config configurations create temp-config
+        gcloud config set account jishar@broadinstitute.org
+        gcloud auth login --no-launch-browser
+
         gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
+
+        gcloud config configurations delete temp-config
 
         fastq_folder_name=$(basename "$fastq_reads_directory_path")
         fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
