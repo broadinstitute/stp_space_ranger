@@ -129,7 +129,7 @@ task space_ranger {
         memory: "150GB"
         cpu: 32
         preemptible: 2
-        disks: "local-disk 3500 HDD"
+        disks: "local-disk 5000 HDD"
     }
 
 }
