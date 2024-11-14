@@ -22,7 +22,7 @@ task space_ranger {
         echo "AFTER GSUTIL"
         find "/cromwell_root/"
 
-        fastq_folder_name=$(basename "$fastq_reads_directory_path")
+        fastq_folder_name= $(basename ~{fastq_reads_directory_path})
         fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
 
         transcriptome_directory=$(dirname ~{transcriptome_file_path})
