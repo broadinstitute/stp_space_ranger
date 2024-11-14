@@ -19,7 +19,7 @@ task space_ranger {
 
         gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
 
-        find "/cromwell_root/" -type f | head -n 1
+        find "/cromwell_root/"
 
         fastq_folder_name=$(basename "$fastq_reads_directory_path")
         fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
@@ -28,6 +28,10 @@ task space_ranger {
         tar -xzf ~{transcriptome_file_path} -C "$transcriptome_directory"
         unzipped_dir_name=$(basename ~{transcriptome_file_path} .tar.gz)
         unzipped_transcriptome_dir="$transcriptome_directory/$unzipped_dir_name/"
+
+        find "/cromwell_root/"
+
+        compgen -v
 
         if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
             if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
