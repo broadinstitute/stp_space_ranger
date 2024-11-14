@@ -17,9 +17,9 @@ task space_ranger {
 
     command <<<
 
-        gsutil cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
+        gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
 
-        ls -1 "/cromwell_root/" | head -n 1
+        find "/cromwell_root/" -type f | head -n 1
 
         fastq_folder_name=$(basename "$fastq_reads_directory_path")
         fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
