@@ -33,6 +33,8 @@ task space_ranger {
         echo "AFTER DECOMPRESSION"
         find "/cromwell_root/"
 
+        echo "The fastq directory basename is: $fastq_folder_name"
+
         echo "The fastq directory is: $fastq_directory_path_in_cromwell"
 
         if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
