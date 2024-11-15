@@ -19,9 +19,6 @@ task space_ranger {
 
         gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
 
-        echo "AFTER GSUTIL"
-        find "/cromwell_root/"
-
         fastq_folder_name=$(basename ~{fastq_reads_directory_path})
         fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
 
@@ -30,11 +27,7 @@ task space_ranger {
         unzipped_dir_name=$(basename ~{transcriptome_file_path} .tar.gz)
         unzipped_transcriptome_dir="$transcriptome_directory/$unzipped_dir_name/"
 
-        echo "AFTER DECOMPRESSION"
-        find "/cromwell_root/"
-
         echo "The fastq directory basename is: $fastq_folder_name"
-
         echo "The fastq directory is: $fastq_directory_path_in_cromwell"
 
         if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
@@ -128,8 +121,8 @@ task space_ranger {
         docker: "jishar7/space_ranger@sha256:7a8cda3d8746e78666c3ef91c919f3ad94ff9bec11a495e8e9df0034b8cc5b6a"
         memory: "150GB"
         cpu: 32
-        preemptible: 2
-        disks: "local-disk 5000 HDD"
+        preemptible: 1
+        disks: "local-disk 7000 HDD"
     }
 
 }
