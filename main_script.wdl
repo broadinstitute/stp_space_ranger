@@ -44,6 +44,6 @@ workflow MAIN_WORKFLOW {
             cpu=if defined(cpu) then select_first([cpu]) else 4,
             use_ssd=if defined(use_ssd) then select_first([use_ssd]) else "false",   
             memory=if defined(memory) then select_first([memory]) else 8,
-            preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 0,
+            preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 0
     }
 }
