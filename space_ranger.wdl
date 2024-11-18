@@ -15,7 +15,7 @@ task space_ranger {
         File dummy_registration_json_file
         Int? disk_size
         Int? cpu
-        Boolean? use_ssd 
+        Boolean use_ssd
         Int? memory
         Int? preemptible_attempts
     }

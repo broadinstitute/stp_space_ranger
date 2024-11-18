@@ -15,7 +15,7 @@ workflow MAIN_WORKFLOW {
         String bam_file_save  # "true" or "false"
         Int? disk_size
         Int? cpu
-        Boolean? use_ssd 
+        Boolean use_ssd = "false"
         Int? memory
         Int? preemptible_attempts
     }
@@ -42,7 +42,7 @@ workflow MAIN_WORKFLOW {
             sample_name=if defined(sample_name) then select_first([sample_name]) else "None",
             disk_size=if defined(disk_size) then select_first([disk_size]) else 50,
             cpu=if defined(cpu) then select_first([cpu]) else 4,
-            use_ssd=if defined(use_ssd) then select_first([use_ssd]) else "false",   
+            use_ssd=use_ssd,   
             memory=if defined(memory) then select_first([memory]) else 8,
             preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 0
     }
