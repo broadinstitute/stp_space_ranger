@@ -9,10 +9,15 @@ workflow MAIN_WORKFLOW {
         File? he_image_path
         File? registration_json_file
         String fastq_reads_directory_path
-        String sample_name
+        String? sample_name = "None"
         String sample_type # human or mouse
         String sample_id
         String bam_file_save  # "true" or "false"
+        Int disk_size = 50
+        Int cpu = 4
+        Boolean use_ssd = false     
+        Int memory = 8
+        Int? preemptible_attempts
     }
 
     File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
