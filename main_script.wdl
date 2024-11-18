@@ -9,14 +9,14 @@ workflow MAIN_WORKFLOW {
         File? he_image_path
         File? registration_json_file
         String fastq_reads_directory_path
-        String? sample_name = "None"
+        String? sample_name
         String sample_type # human or mouse
         String sample_id
         String bam_file_save  # "true" or "false"
-        Int disk_size = 50
-        Int cpu = 4
-        Boolean use_ssd = false     
-        Int memory = 8
+        Int? disk_size
+        Int? cpu
+        Boolean? use_ssd 
+        Int? memory
         Int? preemptible_attempts
     }
 
@@ -39,6 +39,11 @@ workflow MAIN_WORKFLOW {
             bam_file_save = bam_file_save,
             dummy_he_image_path = dummy_he_image_path,
             dummy_registration_json_file = dummy_registration_json_file,
-            sample_name=sample_name
+            sample_name=if defined(sample_name) then select_first([sample_name]) else "None",
+            disk_size=if defined(disk_size) then select_first([disk_size]) else 50,
+            cpu=if defined(cpu) then select_first([cpu]) else 4,
+            use_ssd=if defined(use_ssd) then select_first([use_ssd]) else "false",   
+            memory=if defined(memory) then select_first([memory]) else 8,
+            preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 0,
     }
 }

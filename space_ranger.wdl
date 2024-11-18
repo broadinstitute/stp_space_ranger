@@ -13,10 +13,10 @@ task space_ranger {
         String bam_file_save  # "true" or "false"
         File dummy_he_image_path
         File dummy_registration_json_file
-        Int disk_size
-        Int cpu
-        Boolean use_ssd  
-        Int memory
+        Int? disk_size
+        Int? cpu
+        Boolean? use_ssd 
+        Int? memory
         Int? preemptible_attempts
     }
 
