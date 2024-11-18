@@ -6,17 +6,17 @@ task space_ranger {
         File? he_image_path
         File? registration_json_file
         String fastq_reads_directory_path
-        String? sample_name = "None"
+        String? sample_name
         File? transcriptome_file_path
         File? probe_set_file_path
         String sample_id
         String bam_file_save  # "true" or "false"
         File dummy_he_image_path
         File dummy_registration_json_file
-        Int disk_size = 50
-        Int cpu = 4
-        Boolean use_ssd = false     
-        Int memory = 8
+        Int disk_size
+        Int cpu
+        Boolean use_ssd  
+        Int memory
         Int? preemptible_attempts
     }
 
