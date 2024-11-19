@@ -15,7 +15,7 @@ workflow MAIN_WORKFLOW {
         String bam_file_save  # "true" or "false"
         Int? disk_size
         Int? cpu
-        Boolean use_ssd = "false"
+        Boolean use_ssd = false
         Int? memory
         Int? preemptible_attempts
     }

@@ -172,7 +172,7 @@ task space_ranger {
         docker: "jishar7/space_ranger@sha256:7a8cda3d8746e78666c3ef91c919f3ad94ff9bec11a495e8e9df0034b8cc5b6a"
         memory: memory + " GiB"
         cpu: cpu
-        preemptible: select_first([preemptible_attempts, 1])
+        preemptible: preemptible_attempts
         disks: "local-disk " + disk_size + if use_ssd then " SSD" else " HDD"
     }
 
