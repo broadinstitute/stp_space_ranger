@@ -40,10 +40,10 @@ workflow MAIN_WORKFLOW {
             dummy_he_image_path = dummy_he_image_path,
             dummy_registration_json_file = dummy_registration_json_file,
             sample_name=if defined(sample_name) then select_first([sample_name]) else "None",
-            disk_size=if defined(disk_size) then select_first([disk_size]) else 50,
-            cpu=if defined(cpu) then select_first([cpu]) else 4,
+            disk_size=if defined(disk_size) then select_first([disk_size]) else 1000,
+            cpu=if defined(cpu) then select_first([cpu]) else 32,
             use_ssd=use_ssd,   
-            memory=if defined(memory) then select_first([memory]) else 8,
-            preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 0
+            memory=if defined(memory) then select_first([memory]) else 128,
+            preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 1
     }
 }
