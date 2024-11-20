@@ -5,65 +5,126 @@ task space_ranger {
         File cytassist_image_path
         File? he_image_path
         File? registration_json_file
-        File fastq_read1_file_path
-        File fastq_read2_file_path
+        String fastq_reads_directory_path
+        String? sample_name
         File? transcriptome_file_path
         File? probe_set_file_path
         String sample_id
         String bam_file_save  # "true" or "false"
         File dummy_he_image_path
         File dummy_registration_json_file
+        Int? disk_size
+        Int? cpu
+        Boolean use_ssd
+        Int? memory
+        Int? preemptible_attempts
     }
 
     command <<<
-    
-        fastq_files_directory=$(dirname ~{fastq_read1_file_path})
+
+        gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
+
+        fastq_folder_name=$(basename ~{fastq_reads_directory_path})
+        fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
 
         transcriptome_directory=$(dirname ~{transcriptome_file_path})
         tar -xzf ~{transcriptome_file_path} -C "$transcriptome_directory"
         unzipped_dir_name=$(basename ~{transcriptome_file_path} .tar.gz)
         unzipped_transcriptome_dir="$transcriptome_directory/$unzipped_dir_name/"
 
-        if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
-            if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
-                spaceranger count \
-                        --id ~{sample_id} \
-                        --fastqs "$fastq_files_directory" \
-                        --cytaimage ~{cytassist_image_path} \
-                        --create-bam ~{bam_file_save} \
-                        --transcriptome "$unzipped_transcriptome_dir" \
-                        --probe-set ~{probe_set_file_path}
+        echo "The fastq directory basename is: $fastq_folder_name"
+        echo "The fastq directory is: $fastq_directory_path_in_cromwell"
+        
+        if [ ~{sample_name} == "None" ]; then
+            if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
+                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path}
+                else
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path} \
+                            --loupe-alignment ~{registration_json_file}
+                fi
+
             else
-                spaceranger count \
-                        --id ~{sample_id} \
-                        --fastqs "$fastq_files_directory" \
-                        --cytaimage ~{cytassist_image_path} \
-                        --create-bam ~{bam_file_save} \
-                        --transcriptome "$unzipped_transcriptome_dir" \
-                        --probe-set ~{probe_set_file_path} \
-                        --loupe-alignment ~{registration_json_file}
+                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --image ~{he_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path}
+                else
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --image ~{he_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path} \
+                            --loupe-alignment ~{registration_json_file}
+                fi
             fi
 
         else
-            if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
-                spaceranger count \
-                        --id ~{sample_id} \
-                        --fastqs "$fastq_files_directory" \
-                        --cytaimage ~{cytassist_image_path} \
-                        --image ~{he_image_path} \
-                        --create-bam ~{bam_file_save} \
-                        --transcriptome "$unzipped_transcriptome_dir" \
-                        --probe-set ~{probe_set_file_path}
+            if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
+                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path} \
+                            --sample ~{sample_name}
+                else
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path} \
+                            --loupe-alignment ~{registration_json_file} \
+                            --sample ~{sample_name}
+                fi
+
             else
-                spaceranger count \
-                        --id ~{sample_id} \
-                        --fastqs "$fastq_files_directory" \
-                        --cytaimage ~{cytassist_image_path} \
-                        --image ~{he_image_path} \
-                        --create-bam ~{bam_file_save} \
-                        --transcriptome "$unzipped_transcriptome_dir" \
-                        --probe-set ~{probe_set_file_path} \
-                        --loupe-alignment ~{registration_json_file}
+                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --image ~{he_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path} \
+                            --sample ~{sample_name}
+                else
+                    spaceranger count \
+                            --id ~{sample_id} \
+                            --fastqs "$fastq_directory_path_in_cromwell" \
+                            --cytaimage ~{cytassist_image_path} \
+                            --image ~{he_image_path} \
+                            --create-bam ~{bam_file_save} \
+                            --transcriptome "$unzipped_transcriptome_dir" \
+                            --probe-set ~{probe_set_file_path} \
+                            --loupe-alignment ~{registration_json_file} \
+                            --sample ~{sample_name}
+                fi
             fi
         fi
 
@@ -108,11 +169,11 @@ task space_ranger {
     }
 
     runtime {
-        docker: "jishar7/space_ranger@sha256:538f88a9f9cfe997b0bf7480fea05a724267c1f13ce1c406e65e16bdcbc8db04"
-        memory: "130GB"
-        cpu: 10
-        preemptible: 2
-        disks: "local-disk 1000 HDD"
+        docker: "jishar7/space_ranger@sha256:59240c9059a2008147004988d662f3b33bda6eba87a20e2d63eee8dd289c4fc4"
+        memory: memory + " GiB"
+        cpu: cpu
+        preemptible: preemptible_attempts
+        disks: "local-disk " + disk_size + if use_ssd then " SSD" else " HDD"
     }
 
 }

@@ -10,22 +10,30 @@ RUN apt-get update && \
     libcurl4-openssl-dev \
     zlib1g-dev \
     xz-utils \
+    apt-transport-https \
+    ca-certificates \
+    gnupg \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -o spaceranger-3.1.1.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-3.1.1.tar.gz?Expires=1729669245&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=cbPPlaDwRCWYtJAmVNgqIf8Uq70PgSr7ndSi-3ATe~fbRZ766IFSjOaaCejEQOWyODDgiReR5sozhEeG1fwAUUkPdsyb-9W8Gzds2TPUR5QpcB86IAEjGuiZsV26gPPpTQSVLmbGsfNpbeCtUq0m5pQIkMQuTdpLomj1ZFTz5s5wnxjdDufP9ZT10TIJqU8SjuaGmi79nzh8AKVuCdJZXsth3xY11PAa6FXPh3VTlwAC8eBVLxicWnk87MbCh43W-e-HgXjriZ0ek4rG8X5nkoelUfsbAE8RJhuJy6JCxCNnIumI6cdpgdOMtw5pml70hk83wQhvUvhIbhTeyjXVSQ__"
-RUN tar -zxvf spaceranger-3.1.1.tar.gz
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
 
-ENV PATH="/spaceranger-3.1.1/:${PATH}"
+RUN apt-get update && \
+    apt-get install -y google-cloud-sdk || (sleep 30 && apt-get install -y google-cloud-sdk) && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN gcloud --version && \
+    gcloud info && \
+    gcloud config list
+
+RUN curl -o spaceranger-3.1.2.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-3.1.2.tar.gz?Expires=1732075508&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=fKe88PwTIgXvgoDlLqDtdyrgKUNM1d43uqWLWFbVOHS9ffWg1-HgBkrYtBejT3TfU8H571rJFFApLoBv7k7-Mmcb0AB17adofe-UT-y5ZPn5wwpHUV8nLh2SuHDo-Hnd~qamBWxAs1xsxETUkV72Ajck1DFMfra1HE2QA6yfBMLDrSfpW9xSCeP45jXfSnNbbSnoCM3yerVflqPf3FrjmocRQglUn~jJaumAVWm0z3LL8MVFpxhSgel8W~lbLtpmIilv620Yza5avDLdnDii9EnmmSQ9F~z~KJeelIjTXBeSlv2yZa7yGXn4ANR-4waiqUzEej758zcyecAwWog21g__" && \
+    tar -zxvf spaceranger-3.1.2.tar.gz && \
+    rm spaceranger-3.1.2.tar.gz
+
+ENV PATH="/spaceranger-3.1.2/:${PATH}"
 
 RUN spaceranger --help
-
-RUN pip install --upgrade pip
-RUN pip install --verbose \
-    cellpose==3.0.9 \
-    scikit-image==0.23.2 \
-    opencv-python==4.10.0.82 \
-    matplotlib==3.9.0 \
-    numpy==1.26.4
 
 ENTRYPOINT ["/bin/bash", "-l", "-c", "/bin/bash"]
