@@ -46,6 +46,6 @@ workflow MAIN_WORKFLOW {
             use_ssd=use_ssd,   
             memory=if defined(memory) then select_first([memory]) else 128,
             preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 1,
-            custom_bin_size=if defined(custom_bin_size) then select_first([custom_bin_size]) else 8,
+            custom_bin_size=if defined(custom_bin_size) then select_first([custom_bin_size]) else 8
     }
 }
