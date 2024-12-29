@@ -172,6 +172,7 @@ task space_ranger {
             "./~{sample_id}/binned_outputs.tar.gz",
             "./~{sample_id}/spatial.tar.gz",
             "./~{sample_id}/cloupe_008um.cloupe",
+            "./~{sample_id}/cloupe_~{custom_bin_size}um.cloupe",
             "./~{sample_id}/feature_slice.h5",
             "./~{sample_id}/molecule_info.h5",
             "./~{sample_id}/metrics_summary.csv",
