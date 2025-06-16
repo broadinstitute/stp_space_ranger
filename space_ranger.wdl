@@ -1,7 +1,7 @@
 version 1.0
 task space_ranger {
 
-    input {       
+    input {
         File cytassist_image_path
         File? he_image_path
         File? registration_json_file
@@ -19,6 +19,7 @@ task space_ranger {
         Int? memory
         Int? preemptible_attempts
         Int? custom_bin_size
+        Boolean nucleus_segmentation
     }
 
     command <<<
@@ -35,7 +36,7 @@ task space_ranger {
 
         echo "The fastq directory basename is: $fastq_folder_name"
         echo "The fastq directory is: $fastq_directory_path_in_cromwell"
-        
+
         if [ ~{sample_name} == "None" ]; then
             if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
                 if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
@@ -46,8 +47,9 @@ task space_ranger {
                             --create-bam ~{bam_file_save} \
                             --transcriptome "$unzipped_transcriptome_dir" \
                             --probe-set ~{probe_set_file_path} \
-                            --custom-bin-size ~{custom_bin_size}
-                            
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
+
                 else
                     spaceranger count \
                             --id ~{sample_id} \
@@ -57,7 +59,8 @@ task space_ranger {
                             --transcriptome "$unzipped_transcriptome_dir" \
                             --probe-set ~{probe_set_file_path} \
                             --loupe-alignment ~{registration_json_file} \
-                            --custom-bin-size ~{custom_bin_size}
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
                 fi
 
             else
@@ -70,7 +73,8 @@ task space_ranger {
                             --create-bam ~{bam_file_save} \
                             --transcriptome "$unzipped_transcriptome_dir" \
                             --probe-set ~{probe_set_file_path} \
-                            --custom-bin-size ~{custom_bin_size}
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
                 else
                     spaceranger count \
                             --id ~{sample_id} \
@@ -81,7 +85,8 @@ task space_ranger {
                             --transcriptome "$unzipped_transcriptome_dir" \
                             --probe-set ~{probe_set_file_path} \
                             --loupe-alignment ~{registration_json_file} \
-                            --custom-bin-size ~{custom_bin_size}
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
                 fi
             fi
 
@@ -96,7 +101,8 @@ task space_ranger {
                             --transcriptome "$unzipped_transcriptome_dir" \
                             --probe-set ~{probe_set_file_path} \
                             --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size}
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
                 else
                     spaceranger count \
                             --id ~{sample_id} \
@@ -107,7 +113,8 @@ task space_ranger {
                             --probe-set ~{probe_set_file_path} \
                             --loupe-alignment ~{registration_json_file} \
                             --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size}
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
                 fi
 
             else
@@ -121,7 +128,8 @@ task space_ranger {
                             --transcriptome "$unzipped_transcriptome_dir" \
                             --probe-set ~{probe_set_file_path} \
                             --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size}
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
                 else
                     spaceranger count \
                             --id ~{sample_id} \
@@ -133,13 +141,15 @@ task space_ranger {
                             --probe-set ~{probe_set_file_path} \
                             --loupe-alignment ~{registration_json_file} \
                             --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size}
+                            --custom-bin-size ~{custom_bin_size} \
+                            --nucleus-segmentation ~{nucleus_segmentation}
                 fi
             fi
         fi
 
         tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" binned_outputs
         tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" -C "/cromwell_root/~{sample_id}/outs" spatial
+        tar -czvf "/cromwell_root/~{sample_id}/outs/segmented_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" segmented_outputs
 
         mv "/cromwell_root/~{sample_id}/outs/binned_outputs/square_008um/cloupe.cloupe" "/cromwell_root/~{sample_id}/cloupe_008um.cloupe"
 
@@ -149,12 +159,13 @@ task space_ranger {
 
         rm -rf "/cromwell_root/~{sample_id}/outs/binned_outputs"
         rm -rf "/cromwell_root/~{sample_id}/outs/spatial"
+        rm -rf "/cromwell_root/~{sample_id}/outs/segmented_outputs"
 
         if [[ ~{bam_file_save} == "true" ]]; then
             mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam"
             mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam.bai"
         fi
-        
+
         mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/binned_outputs.tar.gz"
         mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/feature_slice.h5"
         mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "/cromwell_root/~{sample_id}/metrics_summary.csv"
@@ -162,6 +173,9 @@ task space_ranger {
         mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "/cromwell_root/~{sample_id}/probe_set.csv"
         mv "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "/cromwell_root/~{sample_id}/spatial.tar.gz"
         mv "/cromwell_root/~{sample_id}/outs/web_summary.html" "/cromwell_root/~{sample_id}/web_summary.html"
+        mv "/cromwell_root/~{sample_id}/outs/segmented_outputs.tar.gz" "/cromwell_root/~{sample_id}/segmented_outputs.tar.gz"
+        mv "/cromwell_root/~{sample_id}/outs/cloupe_cell.cloupe" "/cromwell_root/~{sample_id}/cloupe_cell.cloupe"
+        mv "/cromwell_root/~{sample_id}/outs/barcode_mappings.parquet" "/cromwell_root/~{sample_id}/barcode_mappings.parquet"
 
         rm -rf "/cromwell_root/~{sample_id}/outs"
 
@@ -179,12 +193,15 @@ task space_ranger {
             "./~{sample_id}/probe_set.csv",
             "./~{sample_id}/possorted_genome_bam.bam",
             "./~{sample_id}/possorted_genome_bam.bam.bai",
-            "./~{sample_id}/web_summary.html"
+            "./~{sample_id}/web_summary.html",
+            "./~{sample_id}/segmented_outputs.tar.gz",
+            "./~{sample_id}/cloupe_cell.cloupe",
+            "./~{sample_id}/barcode_mappings.parquet"
         ]
     }
 
     runtime {
-        docker: "jishar7/space_ranger@sha256:59240c9059a2008147004988d662f3b33bda6eba87a20e2d63eee8dd289c4fc4"
+        docker: "jishar7/space_ranger@sha256:ad92e1cb5301de292ff0b7bc88ab5e807a14c819a455356588b548941800f492"
         memory: memory + " GiB"
         cpu: cpu
         preemptible: preemptible_attempts

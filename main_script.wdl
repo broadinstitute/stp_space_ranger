@@ -18,7 +18,8 @@ workflow MAIN_WORKFLOW {
         Boolean use_ssd = false
         Int? memory
         Int? preemptible_attempts
-        Int? custom_bin_size         
+        Int? custom_bin_size
+        Boolean nucleus_segmentation = true
     }
 
     File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
@@ -43,9 +44,10 @@ workflow MAIN_WORKFLOW {
             sample_name=if defined(sample_name) then select_first([sample_name]) else "None",
             disk_size=if defined(disk_size) then select_first([disk_size]) else 1000,
             cpu=if defined(cpu) then select_first([cpu]) else 32,
-            use_ssd=use_ssd,   
+            use_ssd=use_ssd,
             memory=if defined(memory) then select_first([memory]) else 128,
             preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 1,
-            custom_bin_size=if defined(custom_bin_size) then select_first([custom_bin_size]) else 8
+            custom_bin_size=if defined(custom_bin_size) then select_first([custom_bin_size]) else 8,
+            nucleus_segmentation=nucleus_segmentation
     }
 }
