@@ -26,8 +26,8 @@ workflow MAIN_WORKFLOW {
         File? dummy_registration_json_file
     }
 
-    dummy_he_image_path = if defined(dummy_he_image_path) then select_first([dummy_he_image_path]) else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
-    dummy_registration_json_file = if defined(dummy_registration_json_file) then select_first([dummy_registration_json_file]) else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"
+    File dummy_he_image_path = select_first([dummy_he_image_path, "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"])
+    File dummy_registration_json_file = select_first([dummy_registration_json_file, "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"])
 
     call SPACE_RANGER.space_ranger {
 
