@@ -20,11 +20,14 @@ workflow MAIN_WORKFLOW {
         Int? preemptible_attempts
         Int? custom_bin_size
         Boolean nucleus_segmentation = true
-        File? transcriptome_file_path = if sample_type == "mouse" then "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/mouse/refdata-gex-mm10-2020-A.tar.gz" else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/human/refdata-gex-GRCh38-2020-A.tar.gz"
-        File? probe_set_file_path = if sample_type == "mouse" then "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/mouse/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv" else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/human/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
+        File? user_provided_transcriptome_file_path
+        File? user_provided_probe_set_file_path
         File? dummy_he_image_file_path
         File? dummy_registration_json_file_path
     }
+
+    File transcriptome_file_path = select_first([user_provided_transcriptome_file_path, if sample_type == "mouse" then "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/mouse/refdata-gex-mm10-2020-A.tar.gz" else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/human/refdata-gex-GRCh38-2020-A.tar.gz"])
+    File probe_set_file_path = select_first([user_provided_probe_set_file_path, if sample_type == "mouse" then "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/mouse/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv" else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/human/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"])
 
     File dummy_he_image_path = select_first([dummy_he_image_file_path, "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"])
     File dummy_registration_json_file = select_first([dummy_registration_json_file_path, "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"])
