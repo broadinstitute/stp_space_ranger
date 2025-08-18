@@ -20,9 +20,12 @@ task space_ranger {
         Int? preemptible_attempts
         Int? custom_bin_size
         Boolean nucleus_segmentation
+        Boolean use_probe_set
     }
 
     command <<<
+
+        set -euo pipefail
 
         gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
 
@@ -37,116 +40,41 @@ task space_ranger {
         echo "The fastq directory basename is: $fastq_folder_name"
         echo "The fastq directory is: $fastq_directory_path_in_cromwell"
 
-        if [ ~{sample_name} == "None" ]; then
-            if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
-                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
+        # Build the spaceranger count args incrementally
+        count_args=(
+            --id ~{sample_id}
+            --fastqs "$fastq_directory_path_in_cromwell"
+            --cytaimage ~{cytassist_image_path}
+            --create-bam ~{bam_file_save}
+            --transcriptome "$unzipped_transcriptome_dir"
+            --custom-bin-size ~{custom_bin_size}
+            --nucleus-segmentation ~{nucleus_segmentation}
+        )
 
-                else
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --loupe-alignment ~{registration_json_file} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
-                fi
-
-            else
-                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --image ~{he_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
-                else
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --image ~{he_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --loupe-alignment ~{registration_json_file} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
-                fi
-            fi
-
-        else
-            if [ ~{he_image_path} == ~{dummy_he_image_path} ]; then
-                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
-                else
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --loupe-alignment ~{registration_json_file} \
-                            --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
-                fi
-
-            else
-                if [ ~{registration_json_file} == ~{dummy_registration_json_file} ]; then
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --image ~{he_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
-                else
-                    spaceranger count \
-                            --id ~{sample_id} \
-                            --fastqs "$fastq_directory_path_in_cromwell" \
-                            --cytaimage ~{cytassist_image_path} \
-                            --image ~{he_image_path} \
-                            --create-bam ~{bam_file_save} \
-                            --transcriptome "$unzipped_transcriptome_dir" \
-                            --probe-set ~{probe_set_file_path} \
-                            --loupe-alignment ~{registration_json_file} \
-                            --sample ~{sample_name} \
-                            --custom-bin-size ~{custom_bin_size} \
-                            --nucleus-segmentation ~{nucleus_segmentation}
-                fi
-            fi
+        # Conditional: probe set (new toggle)
+        if [[ ~{use_probe_set} == "true" ]]; then
+            count_args+=( --probe-set ~{probe_set_file_path} )
         fi
 
+        # Conditional: sample name
+        if [[ ~{sample_name} != "None" ]]; then
+            count_args+=( --sample ~{sample_name} )
+        fi
+
+        # Conditional: H&E image (skip if dummy)
+        if [[ ~{he_image_path} != ~{dummy_he_image_path} ]]; then
+            count_args+=( --image ~{he_image_path} )
+        fi
+
+        # Conditional: registration json (skip if dummy)
+        if [[ ~{registration_json_file} != ~{dummy_registration_json_file} ]]; then
+            count_args+=( --loupe-alignment ~{registration_json_file} )
+        fi
+
+        # Run spaceranger once with the assembled arguments
+        spaceranger count "${count_args[@]}"
+
+        # ---------- Post-processing (unchanged behavior) ----------
         tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" binned_outputs
         tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" -C "/cromwell_root/~{sample_id}/outs" spatial
         tar -czvf "/cromwell_root/~{sample_id}/outs/segmented_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" segmented_outputs
