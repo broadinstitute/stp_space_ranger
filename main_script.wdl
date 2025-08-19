@@ -12,7 +12,7 @@ workflow MAIN_WORKFLOW {
         String? sample_name
         String sample_type # human or mouse
         String sample_id
-        String bam_file_save  # "true" or "false"
+        Boolean bam_file_save = false
         Int? disk_size
         Int? cpu
         Boolean use_ssd = false

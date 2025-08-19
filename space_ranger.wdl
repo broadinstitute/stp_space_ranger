@@ -10,7 +10,7 @@ task space_ranger {
         File? transcriptome_file_path
         File? probe_set_file_path
         String sample_id
-        String bam_file_save  # "true" or "false"
+        Boolean bam_file_save
         File dummy_he_image_path
         File dummy_registration_json_file
         Int? disk_size
@@ -52,7 +52,7 @@ task space_ranger {
         )
 
         # Conditional: probe set (new toggle)
-        if [[ ~{use_probe_set} == "true" ]]; then
+        if [[ ~{use_probe_set} == true ]]; then
             count_args+=( --probe-set ~{probe_set_file_path} )
         fi
 
@@ -89,16 +89,19 @@ task space_ranger {
         rm -rf "/cromwell_root/~{sample_id}/outs/spatial"
         rm -rf "/cromwell_root/~{sample_id}/outs/segmented_outputs"
 
-        if [[ ~{bam_file_save} == "true" ]]; then
+        if [[ ~{bam_file_save} == true ]]; then
             mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam"
             mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam.bai"
+        fi
+
+        if [[ ~{use_probe_set} == true ]]; then
+            mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "/cromwell_root/~{sample_id}/probe_set.csv"
         fi
 
         mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/binned_outputs.tar.gz"
         mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/feature_slice.h5"
         mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "/cromwell_root/~{sample_id}/metrics_summary.csv"
         mv "/cromwell_root/~{sample_id}/outs/molecule_info.h5" "/cromwell_root/~{sample_id}/molecule_info.h5"
-        mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "/cromwell_root/~{sample_id}/probe_set.csv"
         mv "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "/cromwell_root/~{sample_id}/spatial.tar.gz"
         mv "/cromwell_root/~{sample_id}/outs/web_summary.html" "/cromwell_root/~{sample_id}/web_summary.html"
         mv "/cromwell_root/~{sample_id}/outs/segmented_outputs.tar.gz" "/cromwell_root/~{sample_id}/segmented_outputs.tar.gz"
