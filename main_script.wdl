@@ -12,7 +12,7 @@ workflow MAIN_WORKFLOW {
         String? sample_name
         String sample_type # human or mouse
         String sample_id
-        String bam_file_save  # "true" or "false"
+        Boolean bam_file_save = false
         Int? disk_size
         Int? cpu
         Boolean use_ssd = false
@@ -20,6 +20,7 @@ workflow MAIN_WORKFLOW {
         Int? preemptible_attempts
         Int? custom_bin_size
         Boolean nucleus_segmentation = true
+        Boolean use_probe_set = true
     }
 
     File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
@@ -48,6 +49,7 @@ workflow MAIN_WORKFLOW {
             memory=if defined(memory) then select_first([memory]) else 128,
             preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 1,
             custom_bin_size=if defined(custom_bin_size) then select_first([custom_bin_size]) else 8,
-            nucleus_segmentation=nucleus_segmentation
+            nucleus_segmentation=nucleus_segmentation,
+            use_probe_set=use_probe_set
     }
 }
