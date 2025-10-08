@@ -27,26 +27,39 @@ task space_ranger {
 
         set -euo pipefail
 
-        gcloud storage cp -r ~{fastq_reads_directory_path} "/cromwell_root/"
+        USER_DATA_DIR="~{fastq_reads_directory_path}"
+        DATA_ROOT="${PWD}"
+
+        echo "Checking data_dir source: ${USER_DATA_DIR}"
+
+        if [[ "${USER_DATA_DIR}" == s3://* ]]; then
+          aws s3 sync "${USER_DATA_DIR%/}" "${DATA_ROOT}/"
+
+        elif [[ "${USER_DATA_DIR}" == gs://* ]]; then
+          gcloud storage cp -r "${USER_DATA_DIR%/}" "${DATA_ROOT}/"
+
+        else
+          echo "ERROR: data_dir must start with s3:// or gs://"
+          exit 1
+        fi
 
         fastq_folder_name=$(basename ~{fastq_reads_directory_path})
-        fastq_directory_path_in_cromwell="/cromwell_root/$fastq_folder_name"
 
         transcriptome_directory=$(dirname ~{transcriptome_file_path})
         tar -xzf ~{transcriptome_file_path} -C "$transcriptome_directory"
         unzipped_dir_name=$(basename ~{transcriptome_file_path} .tar.gz)
         unzipped_transcriptome_dir="$transcriptome_directory/$unzipped_dir_name/"
 
-        echo "The fastq directory basename is: $fastq_folder_name"
-        echo "The fastq directory is: $fastq_directory_path_in_cromwell"
+        echo "The fastq directory basename is: ${fastq_folder_name}"
+        echo "The fastq directory is: ${DATA_ROOT}/$fastq_folder_name"
 
         # Build the spaceranger count args incrementally
         count_args=(
             --id ~{sample_id}
-            --fastqs "$fastq_directory_path_in_cromwell"
+            --fastqs "${DATA_ROOT}/${fastq_folder_name}"
             --cytaimage ~{cytassist_image_path}
             --create-bam ~{bam_file_save}
-            --transcriptome "$unzipped_transcriptome_dir"
+            --transcriptome "${unzipped_transcriptome_dir}"
             --custom-bin-size ~{custom_bin_size}
             --nucleus-segmentation ~{nucleus_segmentation}
         )
@@ -75,40 +88,40 @@ task space_ranger {
         spaceranger count "${count_args[@]}"
 
         # ---------- Post-processing (unchanged behavior) ----------
-        tar -czvf "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" binned_outputs
-        tar -czvf "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" -C "/cromwell_root/~{sample_id}/outs" spatial
-        tar -czvf "/cromwell_root/~{sample_id}/outs/segmented_outputs.tar.gz" -C "/cromwell_root/~{sample_id}/outs" segmented_outputs
+        tar -czvf "${DATA_ROOT}/~{sample_id}/outs/binned_outputs.tar.gz" -C "${DATA_ROOT}/~{sample_id}/outs" binned_outputs
+        tar -czvf "${DATA_ROOT}/~{sample_id}/outs/spatial.tar.gz" -C "${DATA_ROOT}/~{sample_id}/outs" spatial
+        tar -czvf "${DATA_ROOT}/~{sample_id}/outs/segmented_outputs.tar.gz" -C "${DATA_ROOT}/~{sample_id}/outs" segmented_outputs
 
-        mv "/cromwell_root/~{sample_id}/outs/binned_outputs/square_008um/cloupe.cloupe" "/cromwell_root/~{sample_id}/cloupe_008um.cloupe"
+        mv "${DATA_ROOT}/~{sample_id}/outs/binned_outputs/square_008um/cloupe.cloupe" "${DATA_ROOT}/~{sample_id}/cloupe_008um.cloupe"
 
         if [[ ~{custom_bin_size} -ne 8 ]]; then
-            mv "/cromwell_root/~{sample_id}/outs/binned_outputs/square_~{custom_bin_size}um/cloupe.cloupe" "/cromwell_root/~{sample_id}/cloupe_~{custom_bin_size}um.cloupe"
+            mv "${DATA_ROOT}/~{sample_id}/outs/binned_outputs/square_~{custom_bin_size}um/cloupe.cloupe" "${DATA_ROOT}/~{sample_id}/cloupe_~{custom_bin_size}um.cloupe"
         fi
 
-        rm -rf "/cromwell_root/~{sample_id}/outs/binned_outputs"
-        rm -rf "/cromwell_root/~{sample_id}/outs/spatial"
-        rm -rf "/cromwell_root/~{sample_id}/outs/segmented_outputs"
+        rm -rf "${DATA_ROOT}/~{sample_id}/outs/binned_outputs"
+        rm -rf "${DATA_ROOT}/~{sample_id}/outs/spatial"
+        rm -rf "${DATA_ROOT}/~{sample_id}/outs/segmented_outputs"
 
         if [[ ~{bam_file_save} == true ]]; then
-            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam"
-            mv "/cromwell_root/~{sample_id}/outs/possorted_genome_bam.bam.bai" "/cromwell_root/~{sample_id}/possorted_genome_bam.bam.bai"
+            mv "${DATA_ROOT}/~{sample_id}/outs/possorted_genome_bam.bam" "${DATA_ROOT}/~{sample_id}/possorted_genome_bam.bam"
+            mv "${DATA_ROOT}/~{sample_id}/outs/possorted_genome_bam.bam.bai" "${DATA_ROOT}/~{sample_id}/possorted_genome_bam.bam.bai"
         fi
 
         if [[ ~{use_probe_set} == true ]]; then
-            mv "/cromwell_root/~{sample_id}/outs/probe_set.csv" "/cromwell_root/~{sample_id}/probe_set.csv"
+            mv "${DATA_ROOT}/~{sample_id}/outs/probe_set.csv" "${DATA_ROOT}/~{sample_id}/probe_set.csv"
         fi
 
-        mv "/cromwell_root/~{sample_id}/outs/binned_outputs.tar.gz" "/cromwell_root/~{sample_id}/binned_outputs.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/feature_slice.h5" "/cromwell_root/~{sample_id}/feature_slice.h5"
-        mv "/cromwell_root/~{sample_id}/outs/metrics_summary.csv" "/cromwell_root/~{sample_id}/metrics_summary.csv"
-        mv "/cromwell_root/~{sample_id}/outs/molecule_info.h5" "/cromwell_root/~{sample_id}/molecule_info.h5"
-        mv "/cromwell_root/~{sample_id}/outs/spatial.tar.gz" "/cromwell_root/~{sample_id}/spatial.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/web_summary.html" "/cromwell_root/~{sample_id}/web_summary.html"
-        mv "/cromwell_root/~{sample_id}/outs/segmented_outputs.tar.gz" "/cromwell_root/~{sample_id}/segmented_outputs.tar.gz"
-        mv "/cromwell_root/~{sample_id}/outs/cloupe_cell.cloupe" "/cromwell_root/~{sample_id}/cloupe_cell.cloupe"
-        mv "/cromwell_root/~{sample_id}/outs/barcode_mappings.parquet" "/cromwell_root/~{sample_id}/barcode_mappings.parquet"
+        mv "${DATA_ROOT}/~{sample_id}/outs/binned_outputs.tar.gz" "${DATA_ROOT}/~{sample_id}/binned_outputs.tar.gz"
+        mv "${DATA_ROOT}/~{sample_id}/outs/feature_slice.h5" "${DATA_ROOT}/~{sample_id}/feature_slice.h5"
+        mv "${DATA_ROOT}/~{sample_id}/outs/metrics_summary.csv" "${DATA_ROOT}/~{sample_id}/metrics_summary.csv"
+        mv "${DATA_ROOT}/~{sample_id}/outs/molecule_info.h5" "${DATA_ROOT}/~{sample_id}/molecule_info.h5"
+        mv "${DATA_ROOT}/~{sample_id}/outs/spatial.tar.gz" "${DATA_ROOT}/~{sample_id}/spatial.tar.gz"
+        mv "${DATA_ROOT}/~{sample_id}/outs/web_summary.html" "${DATA_ROOT}/~{sample_id}/web_summary.html"
+        mv "${DATA_ROOT}/~{sample_id}/outs/segmented_outputs.tar.gz" "${DATA_ROOT}/~{sample_id}/segmented_outputs.tar.gz"
+        mv "${DATA_ROOT}/~{sample_id}/outs/cloupe_cell.cloupe" "${DATA_ROOT}/~{sample_id}/cloupe_cell.cloupe"
+        mv "${DATA_ROOT}/~{sample_id}/outs/barcode_mappings.parquet" "${DATA_ROOT}/~{sample_id}/barcode_mappings.parquet"
 
-        rm -rf "/cromwell_root/~{sample_id}/outs"
+        rm -rf "${DATA_ROOT}/~{sample_id}/outs"
 
     >>>
 
