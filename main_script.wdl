@@ -8,48 +8,116 @@ workflow MAIN_WORKFLOW {
         File cytassist_image_path
         File? he_image_path
         File? registration_json_file
+
         String fastq_reads_directory_path
         String? sample_name
-        String sample_type # human or mouse
+
+        # Optional when both custom reference paths are supplied.
+        #
+        # Required when using the default references.
+        # Supported values:
+        #   human
+        #   mouse
+        String? sample_type
+
         String sample_id
+
         Boolean bam_file_save = false
+
         Int? disk_size
         Int? cpu
         Boolean use_ssd = false
         Int? memory
         Int? preemptible_attempts
         Int? custom_bin_size
+
         Boolean nucleus_segmentation = true
-        Boolean use_probe_set = true
+
+        # Optional custom GCS transcriptome path.
+        #
+        # Supported formats:
+        #   gs://bucket/reference.tar.gz
+        #   gs://bucket/uncompressed-reference-directory/
+        #
+        # transcriptome_path and probe_set_path must either both be
+        # supplied or both be omitted.
+        String? transcriptome_path
+
+        # Optional custom GCS probe-set CSV path.
+        #
+        # Example:
+        #   gs://bucket/custom_probe_set.csv
+        #
+        # transcriptome_path and probe_set_path must either both be
+        # supplied or both be omitted.
+        String? probe_set_path
     }
-
-    File dummy_he_image_path = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_he.tif"
-    File dummy_registration_json_file = "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_dummy_files/dummy_json_file.json"
-
-    File? transcriptome_file_path = if sample_type == "mouse" then "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/mouse/refdata-gex-mm10-2020-A.tar.gz" else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_references/human/refdata-gex-GRCh38-2020-A.tar.gz"
-    File? probe_set_file_path = if sample_type == "mouse" then "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/mouse/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv" else "gs://fc-d8650e80-227f-42d3-aacb-083f9da586cc/data/2024-09-10/space_ranger_probe_sets/human/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
 
     call SPACE_RANGER.space_ranger {
 
         input:
             cytassist_image_path = cytassist_image_path,
-            he_image_path = if defined(he_image_path) then select_first([he_image_path]) else dummy_he_image_path,
-            registration_json_file = if defined(registration_json_file) then select_first([registration_json_file]) else dummy_registration_json_file,
+            he_image_path = he_image_path,
+            registration_json_file = registration_json_file,
+
             fastq_reads_directory_path = fastq_reads_directory_path,
-            transcriptome_file_path = transcriptome_file_path,
-            probe_set_file_path = probe_set_file_path,
+
+            sample_type = if defined(sample_type) then
+                select_first([sample_type])
+            else
+                "",
+
+            transcriptome_path = if defined(transcriptome_path) then
+                select_first([transcriptome_path])
+            else
+                "",
+
+            probe_set_path = if defined(probe_set_path) then
+                select_first([probe_set_path])
+            else
+                "",
+
             sample_id = sample_id,
+
+            sample_name = if defined(sample_name) then
+                select_first([sample_name])
+            else
+                "None",
+
             bam_file_save = bam_file_save,
-            dummy_he_image_path = dummy_he_image_path,
-            dummy_registration_json_file = dummy_registration_json_file,
-            sample_name=if defined(sample_name) then select_first([sample_name]) else "None",
-            disk_size=if defined(disk_size) then select_first([disk_size]) else 1000,
-            cpu=if defined(cpu) then select_first([cpu]) else 32,
-            use_ssd=use_ssd,
-            memory=if defined(memory) then select_first([memory]) else 128,
-            preemptible_attempts=if defined(preemptible_attempts) then select_first([preemptible_attempts]) else 1,
-            custom_bin_size=if defined(custom_bin_size) then select_first([custom_bin_size]) else 8,
-            nucleus_segmentation=nucleus_segmentation,
-            use_probe_set=use_probe_set
+
+            disk_size = if defined(disk_size) then
+                select_first([disk_size])
+            else
+                1000,
+
+            cpu = if defined(cpu) then
+                select_first([cpu])
+            else
+                32,
+
+            use_ssd = use_ssd,
+
+            memory = if defined(memory) then
+                select_first([memory])
+            else
+                128,
+
+            preemptible_attempts = if defined(preemptible_attempts) then
+                select_first([preemptible_attempts])
+            else
+                1,
+
+            custom_bin_size = if defined(custom_bin_size) then
+                select_first([custom_bin_size])
+            else
+                8,
+
+            nucleus_segmentation = nucleus_segmentation
+    }
+
+    output {
+        Array[File?] space_ranger_outputs =
+            space_ranger.space_ranger_outputs
     }
 }

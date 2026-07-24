@@ -28,9 +28,9 @@ RUN gcloud --version && \
     gcloud info && \
     gcloud config list
 
-RUN curl -o spaceranger-4.0.1.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-4.0.1.tar.gz?Expires=1750126894&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=g94ZC60nRB5N0b6mMeK5RzpjXWVW1BLRCWYS33hvZWU3Wxsd56kB1MoS1QSUrilJdvCMYVLc7ZcsA3UNi47O86cmI9263Pj-pHA54NiGbmxqE9C~PnxpCHTTe7N7pjskInODAKp5eF9ztO6-WK4vHZrjT2rg1u-0NozlZLFv4OqZ25IJkp7p3oq3boxqb6rhcxlu48SK93arQSOwtnCtB62U45Ae8eiPK1pdfQEEdkksFUdavx6B7tbxISlYAcCsi~HoqMIj-llWfaNnB7ugB6NEdzsM-xMPa-GrDZoZQy-0-P3lrKmLM2EEM4dPSrLHmNoBGwsgzb-P5f7F0m-NCA__" && \
-    tar -zxvf spaceranger-4.0.1.tar.gz && \
-    rm spaceranger-4.0.1.tar.gz
+RUN curl -o spaceranger-4.1.0.tar.gz "https://cf.10xgenomics.com/releases/spatial-exp/spaceranger-4.1.0.tar.gz?Expires=1784947156&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=LWG1KVk5Mg~Xc0LYxwSI8H3Us8uMSGXQg~wrO7Lo3CeEo4Uph8VbDxmYyU8cXasiajgysVy9WBop1HOwRXgrBZ27LmHbNUjDMbJtxrHX5WMIvMQL85XRvQJMAGRn6U9ZHs8p~JDU0UkGI6qfwr1K14gdfJ5CSuXcBOkotVkMePi-uBFdrIU4lnWsBvwJo1TZ18amUjIDySShbzqQesyhrrdBbSPHitF1b4mjSYYRc2mxm4Uvdq7u75xH2bmblh4ON-u6dICw8b2f4pX-Dr0Fy7ksCuMusvfar4~9MTefcNkKR0BmlEYBWjbxiMUYta-nsZUtoGaPTae3y9CGa0kJhA__" && \
+    tar -zxvf spaceranger-4.1.0.tar.gz && \
+    rm spaceranger-4.1.0.tar.gz
 
 ENV PATH="/spaceranger-4.0.1/:${PATH}"
 
