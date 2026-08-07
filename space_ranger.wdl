@@ -448,7 +448,7 @@ task space_ranger {
     }
 
     runtime {
-        docker: "jishar7/space_ranger:V2.0"
+        docker: "jishar7/space_ranger:V3.0"
         memory: memory + " GiB"
         cpu: cpu
         preemptible: preemptible_attempts
