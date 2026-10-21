@@ -7,8 +7,16 @@ task space_ranger {
         File? he_image_path
         File? registration_json_file
 
-        String fastq_reads_directory_path
-        String sample_name
+        String rna_fastq_directory_path
+        String rna_sample_name
+
+        File? feature_reference_csv
+
+        # Empty when not supplied.
+        String protein_fastq_directory_path
+
+        # "None" when not supplied.
+        String protein_sample_name
 
         # Empty when not supplied.
         #
@@ -48,10 +56,13 @@ task space_ranger {
         IFS=$'\n\t'
 
         SAMPLE_ID="~{sample_id}"
-        SAMPLE_NAME="~{sample_name}"
+        RNA_SAMPLE_NAME="~{rna_sample_name}"
+        PROTEIN_SAMPLE_NAME="~{protein_sample_name}"
         SAMPLE_TYPE="~{sample_type}"
 
-        FASTQ_SOURCE="~{fastq_reads_directory_path}"
+        RNA_FASTQ_SOURCE="~{rna_fastq_directory_path}"
+        PROTEIN_FASTQ_SOURCE="~{protein_fastq_directory_path}"
+        FEATURE_REF_PATH="~{if defined(feature_reference_csv) then select_first([feature_reference_csv]) else ""}"
         TRANSCRIPTOME_SOURCE="~{transcriptome_path}"
         PROBE_SET_SOURCE="~{probe_set_path}"
 
@@ -64,12 +75,13 @@ task space_ranger {
 
         WORK_ROOT="${PWD}"
 
-        FASTQ_LOCAL_DIR="${WORK_ROOT}/fastqs"
+        RNA_FASTQ_LOCAL_DIR="${WORK_ROOT}/fastqs/rna"
+        PROTEIN_FASTQ_LOCAL_DIR="${WORK_ROOT}/fastqs/protein"
         TRANSCRIPTOME_STAGING_DIR="${WORK_ROOT}/transcriptome"
         INPUT_STAGING_DIR="${WORK_ROOT}/input_files"
 
         mkdir -p \
-            "${FASTQ_LOCAL_DIR}" \
+            "${RNA_FASTQ_LOCAL_DIR}" \
             "${TRANSCRIPTOME_STAGING_DIR}" \
             "${INPUT_STAGING_DIR}"
 
@@ -147,7 +159,8 @@ task space_ranger {
         fi
 
         echo "Sample ID: ${SAMPLE_ID}"
-        echo "FASTQ source: ${FASTQ_SOURCE}"
+        echo "RNA FASTQ source: ${RNA_FASTQ_SOURCE}"
+        echo "Protein FASTQ source: ${PROTEIN_FASTQ_SOURCE:-<none>}"
         echo "Transcriptome source: ${TRANSCRIPTOME_SOURCE}"
         echo "Probe-set source: ${PROBE_SET_SOURCE}"
 
@@ -155,9 +168,38 @@ task space_ranger {
         # Validate GCS inputs
         # ------------------------------------------------------------
 
-        if [[ "${FASTQ_SOURCE}" != gs://* ]]; then
-            echo "ERROR: fastq_reads_directory_path must start with gs://"
-            echo "Received: ${FASTQ_SOURCE}"
+        if [[ "${RNA_FASTQ_SOURCE}" != gs://* ]]; then
+            echo "ERROR: rna_fastq_directory_path must start with gs://"
+            echo "Received: ${RNA_FASTQ_SOURCE}"
+            exit 2
+        fi
+
+        USE_PROTEIN=false
+
+        if [[ -n "${PROTEIN_FASTQ_SOURCE}" ]]; then
+            USE_PROTEIN=true
+
+            if [[ "${PROTEIN_FASTQ_SOURCE}" != gs://* ]]; then
+                echo "ERROR: protein_fastq_directory_path must start with gs://"
+                echo "Received: ${PROTEIN_FASTQ_SOURCE}"
+                exit 2
+            fi
+
+            if [[ -z "${FEATURE_REF_PATH}" ]]; then
+                echo "ERROR: feature_reference_csv is required with protein_fastq_directory_path."
+                exit 2
+            fi
+
+            if [[ "${PROTEIN_SAMPLE_NAME}" == "None" ]] || \
+               [[ "${RNA_SAMPLE_NAME}" == "None" ]]; then
+                echo "ERROR: rna_sample_name and protein_sample_name are both required"
+                echo "when protein_fastq_directory_path is supplied."
+                exit 2
+            fi
+        elif [[ -n "${FEATURE_REF_PATH}" ]] || \
+             [[ "${PROTEIN_SAMPLE_NAME}" != "None" ]]; then
+            echo "ERROR: feature_reference_csv / protein_sample_name were supplied"
+            echo "without protein_fastq_directory_path."
             exit 2
         fi
 
@@ -183,20 +225,28 @@ task space_ranger {
         # Copy FASTQs from GCS
         # ------------------------------------------------------------
 
-        echo "Copying FASTQs from Google Cloud Storage..."
+        copy_fastqs() {
+            local source="$1" dest="$2" label="$3"
 
-        gcloud storage rsync -r \
-            "${FASTQ_SOURCE%/}/" \
-            "${FASTQ_LOCAL_DIR}/"
+            echo "Copying ${label} FASTQs from Google Cloud Storage..."
+            mkdir -p "${dest}"
 
-        if [[ -z "$(find "${FASTQ_LOCAL_DIR}" -type f -print -quit)" ]]; then
-            echo "ERROR: No FASTQ files were copied from:"
-            echo "       ${FASTQ_SOURCE}"
-            exit 3
+            gcloud storage rsync -r "${source%/}/" "${dest}/"
+
+            if [[ -z "$(find "${dest}" -type f -print -quit)" ]]; then
+                echo "ERROR: No ${label} FASTQ files were copied from:"
+                echo "       ${source}"
+                exit 3
+            fi
+
+            echo "${label} FASTQs copied to: ${dest}"
+        }
+
+        copy_fastqs "${RNA_FASTQ_SOURCE}" "${RNA_FASTQ_LOCAL_DIR}" "RNA"
+
+        if [[ "${USE_PROTEIN}" == "true" ]]; then
+            copy_fastqs "${PROTEIN_FASTQ_SOURCE}" "${PROTEIN_FASTQ_LOCAL_DIR}" "protein"
         fi
-
-        echo "FASTQs copied to:"
-        echo "${FASTQ_LOCAL_DIR}"
 
         # ------------------------------------------------------------
         # Copy or extract the transcriptome reference
@@ -296,7 +346,6 @@ task space_ranger {
 
         count_args=(
             --id "${SAMPLE_ID}"
-            --fastqs "${FASTQ_LOCAL_DIR}"
             --cytaimage "~{cytassist_image_path}"
             --create-bam "${BAM_FILE_SAVE}"
             --transcriptome "${TRANSCRIPTOME_LOCAL_DIR}"
@@ -305,10 +354,24 @@ task space_ranger {
             --nucleus-segmentation "${NUCLEUS_SEGMENTATION}"
         )
 
-        if [[ "${SAMPLE_NAME}" != "None" ]]; then
+        # Combine RNA and protein FASTQ directories and sample names.
+        # Order must match between --fastqs and --sample.
+        if [[ "${USE_PROTEIN}" == "true" ]]; then
             count_args+=(
-                --sample "${SAMPLE_NAME}"
+                --fastqs "${RNA_FASTQ_LOCAL_DIR},${PROTEIN_FASTQ_LOCAL_DIR}"
+                --sample "${RNA_SAMPLE_NAME},${PROTEIN_SAMPLE_NAME}"
+                --feature-ref "${FEATURE_REF_PATH}"
             )
+        else
+            count_args+=(
+                --fastqs "${RNA_FASTQ_LOCAL_DIR}"
+            )
+
+            if [[ "${RNA_SAMPLE_NAME}" != "None" ]]; then
+                count_args+=(
+                    --sample "${RNA_SAMPLE_NAME}"
+                )
+            fi
         fi
 
         if [[ -n "${HE_IMAGE_PATH}" ]]; then
@@ -448,7 +511,7 @@ task space_ranger {
     }
 
     runtime {
-        docker: "jishar7/space_ranger:V3.0"
+        docker: "jishar7/space_ranger:V4.0"
         memory: memory + " GiB"
         cpu: cpu
         preemptible: preemptible_attempts
