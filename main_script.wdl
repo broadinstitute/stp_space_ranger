@@ -9,8 +9,16 @@ workflow MAIN_WORKFLOW {
         File? he_image_path
         File? registration_json_file
 
-        String fastq_reads_directory_path
-        String? sample_name
+        # RNA (gene expression) FASTQs and the sample name used in their filenames.
+        String rna_fastq_directory_path
+        String? rna_sample_name
+
+        # Optional protein (antibody capture) inputs. When protein_fastq_directory_path
+        # is supplied, feature_reference_csv, protein_sample_name and
+        # rna_sample_name must all be supplied as well.
+        File? feature_reference_csv
+        String? protein_fastq_directory_path
+        String? protein_sample_name
 
         # Optional when both custom reference paths are supplied.
         #
@@ -60,7 +68,18 @@ workflow MAIN_WORKFLOW {
             he_image_path = he_image_path,
             registration_json_file = registration_json_file,
 
-            fastq_reads_directory_path = fastq_reads_directory_path,
+            rna_fastq_directory_path = rna_fastq_directory_path,
+            feature_reference_csv = feature_reference_csv,
+
+            protein_fastq_directory_path = if defined(protein_fastq_directory_path) then
+                select_first([protein_fastq_directory_path])
+            else
+                "",
+
+            protein_sample_name = if defined(protein_sample_name) then
+                select_first([protein_sample_name])
+            else
+                "None",
 
             sample_type = if defined(sample_type) then
                 select_first([sample_type])
@@ -79,8 +98,8 @@ workflow MAIN_WORKFLOW {
 
             sample_id = sample_id,
 
-            sample_name = if defined(sample_name) then
-                select_first([sample_name])
+            rna_sample_name = if defined(rna_sample_name) then
+                select_first([rna_sample_name])
             else
                 "None",
 
