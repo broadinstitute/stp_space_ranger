@@ -407,86 +407,181 @@ task space_ranger {
             exit 9
         fi
 
-        tar -czvf \
-            "${OUTS_DIR}/binned_outputs.tar.gz" \
-            -C "${OUTS_DIR}" \
-            binned_outputs
+        echo "Space Ranger outs/ contents:"
+        ls -la "${OUTS_DIR}"
 
-        tar -czvf \
-            "${OUTS_DIR}/spatial.tar.gz" \
-            -C "${OUTS_DIR}" \
-            spatial
+        ADDITIONAL_DIR="${WORK_ROOT}/additional_outputs"
+        mkdir -p "${ADDITIONAL_DIR}"
 
-        tar -czvf \
-            "${OUTS_DIR}/segmented_outputs.tar.gz" \
-            -C "${OUTS_DIR}" \
-            segmented_outputs
+        # collect <required|optional> <source> <destination>
+        #
+        # Moves a file out of outs/. Symlinks (e.g. cloupe_cell.cloupe) are
+        # dereferenced by copying, so they survive the later removal of the
+        # directories they point into. Missing optional files only warn.
+        collect() {
+            local mode="$1" src="$2" dest="$3"
 
+            if [[ ! -e "${src}" ]]; then
+                if [[ "${mode}" == "required" ]]; then
+                    echo "ERROR: expected output not found: ${src}"
+                    exit 10
+                fi
+                echo "WARNING: optional output not found, skipping: ${src}"
+                return 0
+            fi
+
+            if [[ -L "${src}" ]]; then
+                cp -L "${src}" "${dest}"
+            else
+                mv "${src}" "${dest}"
+            fi
+        }
+
+        # tar_dir <directory name under outs/>
+        # Skipped when the directory is absent (e.g. segmentation disabled).
+        tar_dir() {
+            local name="$1"
+
+            if [[ -d "${OUTS_DIR}/${name}" ]]; then
+                tar -czvf \
+                    "${OUTS_DIR}/${name}.tar.gz" \
+                    -C "${OUTS_DIR}" \
+                    "${name}"
+            else
+                echo "WARNING: ${name}/ not found in outs/, skipping archive."
+            fi
+        }
+
+        tar_dir binned_outputs
+        tar_dir spatial
+        tar_dir segmented_outputs
+
+        # Cloupe files must be collected before their parent directories
+        # are deleted.
         CUSTOM_BIN_PADDED="$(printf "%03d" "${CUSTOM_BIN_SIZE}")"
 
-        mv \
-            "${OUTS_DIR}/binned_outputs/square_008um/cloupe.cloupe" \
-            "${SAMPLE_DIR}/cloupe_008um.cloupe"
+        if [[ -e "${OUTS_DIR}/binned_outputs/square_008um/cloupe.cloupe" ]]; then
+            collect optional \
+                "${OUTS_DIR}/binned_outputs/square_008um/cloupe.cloupe" \
+                "${SAMPLE_DIR}/cloupe_008um.cloupe"
+        else
+            collect optional \
+                "${OUTS_DIR}/cloupe_008um.cloupe" \
+                "${SAMPLE_DIR}/cloupe_008um.cloupe"
+        fi
 
         if [[ "${CUSTOM_BIN_SIZE}" -ne 8 ]]; then
-            mv \
-                "${OUTS_DIR}/binned_outputs/square_${CUSTOM_BIN_PADDED}um/cloupe.cloupe" \
-                "${SAMPLE_DIR}/cloupe_${CUSTOM_BIN_SIZE}um.cloupe"
+            if [[ -e "${OUTS_DIR}/binned_outputs/square_${CUSTOM_BIN_PADDED}um/cloupe.cloupe" ]]; then
+                collect optional \
+                    "${OUTS_DIR}/binned_outputs/square_${CUSTOM_BIN_PADDED}um/cloupe.cloupe" \
+                    "${SAMPLE_DIR}/cloupe_${CUSTOM_BIN_SIZE}um.cloupe"
+            else
+                collect optional \
+                    "${OUTS_DIR}/cloupe_custom.cloupe" \
+                    "${SAMPLE_DIR}/cloupe_${CUSTOM_BIN_SIZE}um.cloupe"
+            fi
         fi
+
+        collect optional \
+            "${OUTS_DIR}/cloupe_cell.cloupe" \
+            "${SAMPLE_DIR}/cloupe_cell.cloupe"
+
+        # Drop the top-level cloupe symlinks and the directories they pointed
+        # into; their contents are already collected or archived above.
+        rm -f \
+            "${OUTS_DIR}/cloupe_008um.cloupe" \
+            "${OUTS_DIR}/cloupe_custom.cloupe" \
+            "${OUTS_DIR}/cloupe_cell.cloupe"
 
         rm -rf "${OUTS_DIR}/binned_outputs"
         rm -rf "${OUTS_DIR}/spatial"
         rm -rf "${OUTS_DIR}/segmented_outputs"
 
         if [[ "${BAM_FILE_SAVE}" == "true" ]]; then
-            mv \
+            collect required \
                 "${OUTS_DIR}/possorted_genome_bam.bam" \
                 "${SAMPLE_DIR}/possorted_genome_bam.bam"
 
-            mv \
+            # Genomes with very long chromosomes get a .csi index instead of
+            # .bai; the .csi is picked up by the additional outputs sweep.
+            collect optional \
                 "${OUTS_DIR}/possorted_genome_bam.bam.bai" \
                 "${SAMPLE_DIR}/possorted_genome_bam.bam.bai"
         fi
 
-        mv \
-            "${OUTS_DIR}/probe_set.csv" \
-            "${SAMPLE_DIR}/probe_set.csv"
-
-        mv \
-            "${OUTS_DIR}/binned_outputs.tar.gz" \
-            "${SAMPLE_DIR}/binned_outputs.tar.gz"
-
-        mv \
-            "${OUTS_DIR}/feature_slice.h5" \
-            "${SAMPLE_DIR}/feature_slice.h5"
-
-        mv \
+        collect required \
             "${OUTS_DIR}/metrics_summary.csv" \
             "${SAMPLE_DIR}/metrics_summary.csv"
 
-        mv \
-            "${OUTS_DIR}/molecule_info.h5" \
-            "${SAMPLE_DIR}/molecule_info.h5"
-
-        mv \
-            "${OUTS_DIR}/spatial.tar.gz" \
-            "${SAMPLE_DIR}/spatial.tar.gz"
-
-        mv \
+        collect required \
             "${OUTS_DIR}/web_summary.html" \
             "${SAMPLE_DIR}/web_summary.html"
 
-        mv \
+        collect required \
+            "${OUTS_DIR}/molecule_info.h5" \
+            "${SAMPLE_DIR}/molecule_info.h5"
+
+        collect required \
+            "${OUTS_DIR}/feature_slice.h5" \
+            "${SAMPLE_DIR}/feature_slice.h5"
+
+        collect required \
+            "${OUTS_DIR}/binned_outputs.tar.gz" \
+            "${SAMPLE_DIR}/binned_outputs.tar.gz"
+
+        collect required \
+            "${OUTS_DIR}/spatial.tar.gz" \
+            "${SAMPLE_DIR}/spatial.tar.gz"
+
+        collect optional \
+            "${OUTS_DIR}/probe_set.csv" \
+            "${SAMPLE_DIR}/probe_set.csv"
+
+        collect optional \
             "${OUTS_DIR}/segmented_outputs.tar.gz" \
             "${SAMPLE_DIR}/segmented_outputs.tar.gz"
 
-        mv \
-            "${OUTS_DIR}/cloupe_cell.cloupe" \
-            "${SAMPLE_DIR}/cloupe_cell.cloupe"
-
-        mv \
+        collect optional \
             "${OUTS_DIR}/barcode_mappings.parquet" \
             "${SAMPLE_DIR}/barcode_mappings.parquet"
+
+        # ------------------------------------------------------------
+        # Sweep up anything else Space Ranger produced (e.g. protein
+        # outputs such as feature_reference.csv, filtered/raw matrices,
+        # analysis/). Directories are archived, symlinks are resolved.
+        # ------------------------------------------------------------
+
+        shopt -s nullglob dotglob
+
+        for entry in "${OUTS_DIR}"/*; do
+            name="$(basename "${entry}")"
+
+            if [[ -d "${entry}" ]]; then
+                echo "Archiving additional directory: ${name}/"
+                tar -czhf "${ADDITIONAL_DIR}/${name}.tar.gz" -C "${OUTS_DIR}" "${name}"
+            elif [[ -L "${entry}" ]]; then
+                echo "Copying additional symlinked file: ${name}"
+                cp -L "${entry}" "${ADDITIONAL_DIR}/${name}"
+            else
+                echo "Moving additional file: ${name}"
+                mv "${entry}" "${ADDITIONAL_DIR}/${name}"
+            fi
+        done
+
+        shopt -u nullglob dotglob
+
+        echo "Additional outputs:"
+        ls -la "${ADDITIONAL_DIR}"
+
+        # Bundle the extras into a single archive next to the main outputs.
+        if [[ -n "$(find "${ADDITIONAL_DIR}" -mindepth 1 -print -quit)" ]]; then
+            tar -czvf \
+                "${SAMPLE_DIR}/additional_outputs.tar.gz" \
+                -C "${ADDITIONAL_DIR}" \
+                .
+        else
+            echo "No additional outputs to archive."
+        fi
 
         rm -rf "${OUTS_DIR}"
     >>>
@@ -506,7 +601,8 @@ task space_ranger {
             "./~{sample_id}/web_summary.html",
             "./~{sample_id}/segmented_outputs.tar.gz",
             "./~{sample_id}/cloupe_cell.cloupe",
-            "./~{sample_id}/barcode_mappings.parquet"
+            "./~{sample_id}/barcode_mappings.parquet",
+            "./~{sample_id}/additional_outputs.tar.gz"
         ]
     }
 

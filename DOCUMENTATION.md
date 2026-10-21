@@ -58,7 +58,8 @@ If `protein_fastq_directory_path` is set, then `feature_reference_csv`, `protein
 
 ## Outputs
 
-Upon successful completion, the following files are generated:
+### Main outputs (`space_ranger_outputs`)
+Saved as `{sample_id}/<file>` as in previous versions:
 
 - `feature_slice.h5`
 - `metrics_summary.csv`
@@ -69,12 +70,16 @@ Upon successful completion, the following files are generated:
 - `cloupe_008um.cloupe`
 - `cloupe_cell.cloupe`
 - `probe_set.csv`
-- `segmented_outputs.tar.gz`
+- `segmented_outputs.tar.gz` (not produced if `nucleus_segmentation` is false)
 - `barcode_mappings.parquet`
 - Optional: `cloupe_<custom_bin_size>um.cloupe` (only when `custom_bin_size` is not 8)
 - Optional: `possorted_genome_bam.bam` and `possorted_genome_bam.bam.bai` (only when `bam_file_save` is true)
+- `additional_outputs.tar.gz`: everything else Space Ranger produced (see below)
 
-Outputs are saved in a directory named after `sample_id`, e.g. `{sample_id}/feature_slice.h5`.
+Optional files that Space Ranger does not produce are skipped with a warning. The run fails only if `metrics_summary.csv`, `web_summary.html`, `molecule_info.h5`, `feature_slice.h5`, `binned_outputs.tar.gz` or `spatial.tar.gz` is missing.
+
+### Additional outputs (`additional_outputs.tar.gz`)
+Anything else Space Ranger writes to `outs/` that is not listed above is bundled into `{sample_id}/additional_outputs.tar.gz`, so nothing is lost and everything stays in one place. For example, `feature_reference.csv` and the isotype normalization file from protein runs, a `.csi` BAM index for very large genomes, and other directories. The contents depend on the run; untar the file to see them. The task log lists what was included.
 
 ### Output Organization
 
