@@ -22,15 +22,24 @@ GitHub repository for STP-Space_Ranger: <https://github.com/broadinstitute/stp_s
 - `registration_json_file` (File): Path to the Loupe image registration file.
 
 ### RNA sample
-- `rna_sample_name` (String): Prefix used to identify the RNA FASTQ files to process. Required if protein inputs are supplied.
+- `rna_sample_name` (String): Sample name used to identify the RNA FASTQ files to process. It can be the full FASTQ sample prefix (everything before `_S<n>_L<nnn>_R<n>_001.fastq.gz`) or a partial string of it; see *Sample name matching* below. Optional: if omitted, it is detected from the RNA FASTQ directory.
 
 ### Protein (antibody capture), optional
 Supply these together to process protein and RNA in one run. No index files are needed.
 - `protein_fastq_directory_path` (String): `gs://` path to the directory containing the protein FASTQ files.
-- `protein_sample_name` (String): Prefix used to identify the protein FASTQ files.
+- `protein_sample_name` (String): Sample name used to identify the protein FASTQ files (full prefix or a partial string, same matching as `rna_sample_name`). Optional: if omitted, it is detected from the protein FASTQ directory.
 - `feature_reference_csv` (File): Feature reference CSV describing the protein panel.
 
-If `protein_fastq_directory_path` is set, then `feature_reference_csv`, `protein_sample_name` and `rna_sample_name` are all required. Setting `feature_reference_csv` or `protein_sample_name` without `protein_fastq_directory_path` is an error. The workflow builds a `libraries.csv` (a Gene Expression row for the RNA FASTQs and an Antibody Capture row for the protein FASTQs, RNA first) and passes it to Space Ranger with `--libraries` and `--feature-ref`. Space Ranger does not accept protein FASTQs through `--fastqs`/`--sample`.
+If `protein_fastq_directory_path` is set, `feature_reference_csv` is also required. Setting `feature_reference_csv` or `protein_sample_name` without `protein_fastq_directory_path` is an error. The workflow builds a `libraries.csv` (a Gene Expression row for the RNA FASTQs and an Antibody Capture row for the protein FASTQs, RNA first) and passes it to Space Ranger with `--libraries` and `--feature-ref`. Space Ranger does not accept protein FASTQs through `--fastqs`/`--sample`.
+
+### Sample name matching
+Space Ranger needs the exact FASTQ sample prefix, e.g. `25FC52LT4_2_0476209776_Q158_V013` for `25FC52LT4_2_0476209776_Q158_V013_S2_L002_R1_001.fastq.gz`. The workflow looks at the FASTQs in each directory and works out the sample name for you:
+- **No name given:** if the directory contains exactly one sample, it is used. (For an RNA-only run with several samples in the directory and no name, `--sample` is omitted and all FASTQs are used, as before. For protein runs, a name is needed whenever a directory has more than one sample.)
+- **Exact match:** a name equal to a sample prefix is used as is.
+- **Partial match:** if your string is contained in exactly one sample prefix, that prefix is used.
+- **No match, or more than one:** the task stops before running Space Ranger and lists the available samples.
+
+The task log shows which sample name was used.
 
 ### Custom references
 - `transcriptome_path` (String): `gs://` path to a custom transcriptome, either a `.tar.gz` archive or an uncompressed directory containing a single `reference.json`.

@@ -190,12 +190,6 @@ task space_ranger {
                 exit 2
             fi
 
-            if [[ "${PROTEIN_SAMPLE_NAME}" == "None" ]] || \
-               [[ "${RNA_SAMPLE_NAME}" == "None" ]]; then
-                echo "ERROR: rna_sample_name and protein_sample_name are both required"
-                echo "when protein_fastq_directory_path is supplied."
-                exit 2
-            fi
         elif [[ -n "${FEATURE_REF_PATH}" ]] || \
              [[ "${PROTEIN_SAMPLE_NAME}" != "None" ]]; then
             echo "ERROR: feature_reference_csv / protein_sample_name were supplied"
@@ -247,6 +241,95 @@ task space_ranger {
         if [[ "${USE_PROTEIN}" == "true" ]]; then
             copy_fastqs "${PROTEIN_FASTQ_SOURCE}" "${PROTEIN_FASTQ_LOCAL_DIR}" "protein"
         fi
+
+        # ------------------------------------------------------------
+        # Resolve sample names against the actual FASTQ filenames
+        # ------------------------------------------------------------
+
+        # list_sample_prefixes <fastq dir>
+        #
+        # Prints each distinct FASTQ sample prefix (everything before
+        # _S<n>_L<nnn>_R<n>_001.fastq.gz), one per line.
+        list_sample_prefixes() {
+            find "$1" -type f -name '*.fastq.gz' -exec basename {} \; |
+                grep -E '_S[0-9]+_L[0-9]+_[RI][0-9]_[0-9]+\.fastq\.gz$' |
+                sed -E 's/_S[0-9]+_L[0-9]+_[RI][0-9]_[0-9]+\.fastq\.gz$//' |
+                sort -u || true
+        }
+
+        # resolve_sample_name <requested name or "None"> <fastq dir> <label>
+        #
+        # Space Ranger needs the exact FASTQ sample prefix. The requested name
+        # may be a partial string of it; an exact match wins, otherwise it
+        # must match exactly one prefix. When no name is requested ("None"),
+        # the directory must contain exactly one sample, which is used.
+        # Prints the resolved prefix on stdout; returns 1 when it cannot be
+        # resolved unambiguously.
+        resolve_sample_name() {
+            local requested="$1" dir="$2" label="$3"
+            local -a prefixes matches
+            local prefix
+
+            mapfile -t prefixes < <(list_sample_prefixes "${dir}")
+
+            if [[ "${#prefixes[@]}" -eq 0 ]]; then
+                echo "ERROR: no FASTQ files with 10x-style names found in the ${label} directory." >&2
+                return 1
+            fi
+
+            if [[ "${requested}" == "None" ]]; then
+                if [[ "${#prefixes[@]}" -eq 1 ]]; then
+                    echo "${label} sample name not provided; detected '${prefixes[0]}'." >&2
+                    echo "${prefixes[0]}"
+                    return 0
+                fi
+
+                echo "ERROR: ${label} sample name not provided and the directory contains more than one sample." >&2
+                echo "Available ${label} samples:" >&2
+                printf '  %s\n' "${prefixes[@]}" >&2
+                return 1
+            fi
+
+            for prefix in "${prefixes[@]}"; do
+                if [[ "${prefix}" == "${requested}" ]]; then
+                    echo "${label} sample name '${requested}' matches exactly." >&2
+                    echo "${requested}"
+                    return 0
+                fi
+            done
+
+            matches=()
+            for prefix in "${prefixes[@]}"; do
+                if [[ "${prefix}" == *"${requested}"* ]]; then
+                    matches+=("${prefix}")
+                fi
+            done
+
+            if [[ "${#matches[@]}" -eq 1 ]]; then
+                echo "${label} sample name '${requested}' resolved to '${matches[0]}'." >&2
+                echo "${matches[0]}"
+                return 0
+            fi
+
+            if [[ "${#matches[@]}" -eq 0 ]]; then
+                echo "ERROR: ${label} sample name '${requested}' did not match any FASTQ sample." >&2
+            else
+                echo "ERROR: ${label} sample name '${requested}' matched more than one FASTQ sample." >&2
+            fi
+            echo "Available ${label} samples:" >&2
+            printf '  %s\n' "${prefixes[@]}" >&2
+            return 1
+        }
+
+        if [[ "${USE_PROTEIN}" == "true" ]]; then
+            # The libraries CSV needs an explicit sample for each library.
+            RNA_SAMPLE_NAME="$(resolve_sample_name "${RNA_SAMPLE_NAME}" "${RNA_FASTQ_LOCAL_DIR}" "RNA")"
+            PROTEIN_SAMPLE_NAME="$(resolve_sample_name "${PROTEIN_SAMPLE_NAME}" "${PROTEIN_FASTQ_LOCAL_DIR}" "protein")"
+        elif [[ "${RNA_SAMPLE_NAME}" != "None" ]]; then
+            RNA_SAMPLE_NAME="$(resolve_sample_name "${RNA_SAMPLE_NAME}" "${RNA_FASTQ_LOCAL_DIR}" "RNA")"
+        fi
+        # RNA-only with no sample name: --sample is omitted and Space Ranger
+        # uses every FASTQ in the directory, as before.
 
         # ------------------------------------------------------------
         # Copy or extract the transcriptome reference
