@@ -33,7 +33,7 @@ Supply these together to process protein and RNA in one run. No index files are 
 If `protein_fastq_directory_path` is set, `feature_reference_csv` is also required. Setting `feature_reference_csv` or `protein_sample_name` without `protein_fastq_directory_path` is an error. The workflow builds a `libraries.csv` (a Gene Expression row for the RNA FASTQs and an Antibody Capture row for the protein FASTQs, RNA first) and passes it to Space Ranger with `--libraries` and `--feature-ref`. Space Ranger does not accept protein FASTQs through `--fastqs`/`--sample`.
 
 ### Sample name matching
-Space Ranger needs the exact FASTQ sample prefix, e.g. `25FC52LT4_2_0476209776_Q158_V013` for `25FC52LT4_2_0476209776_Q158_V013_S2_L002_R1_001.fastq.gz`. The workflow looks at the FASTQs in each directory and works out the sample name for you:
+Space Ranger needs the exact FASTQ sample prefix, e.g. `RUN123_2_0001234567_SampleA` for `RUN123_2_0001234567_SampleA_S2_L002_R1_001.fastq.gz`. The workflow looks at the FASTQs in each directory and works out the sample name for you:
 - **No name given:** if the directory contains exactly one sample, it is used. (For an RNA-only run with several samples in the directory and no name, `--sample` is omitted and all FASTQs are used, as before. For protein runs, a name is needed whenever a directory has more than one sample.)
 - **Exact match:** a name equal to a sample prefix is used as is.
 - **Partial match:** if your string is contained in exactly one sample prefix, that prefix is used.
