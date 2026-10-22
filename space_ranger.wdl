@@ -354,12 +354,23 @@ task space_ranger {
             --nucleus-segmentation "${NUCLEUS_SEGMENTATION}"
         )
 
-        # Combine RNA and protein FASTQ directories and sample names.
-        # Order must match between --fastqs and --sample.
+        # Space Ranger only accepts protein (Antibody Capture) FASTQs through a
+        # --libraries CSV; --fastqs/--sample are always treated as Gene
+        # Expression. Build the CSV from the RNA and protein inputs.
         if [[ "${USE_PROTEIN}" == "true" ]]; then
+            LIBRARIES_CSV="${INPUT_STAGING_DIR}/libraries.csv"
+
+            {
+                echo "fastqs,sample,library_type"
+                echo "${RNA_FASTQ_LOCAL_DIR},${RNA_SAMPLE_NAME},Gene Expression"
+                echo "${PROTEIN_FASTQ_LOCAL_DIR},${PROTEIN_SAMPLE_NAME},Antibody Capture"
+            } > "${LIBRARIES_CSV}"
+
+            echo "libraries.csv:"
+            cat "${LIBRARIES_CSV}"
+
             count_args+=(
-                --fastqs "${RNA_FASTQ_LOCAL_DIR},${PROTEIN_FASTQ_LOCAL_DIR}"
-                --sample "${RNA_SAMPLE_NAME},${PROTEIN_SAMPLE_NAME}"
+                --libraries "${LIBRARIES_CSV}"
                 --feature-ref "${FEATURE_REF_PATH}"
             )
         else

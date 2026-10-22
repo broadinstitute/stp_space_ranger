@@ -30,7 +30,7 @@ Supply these together to process protein and RNA in one run. No index files are 
 - `protein_sample_name` (String): Prefix used to identify the protein FASTQ files.
 - `feature_reference_csv` (File): Feature reference CSV describing the protein panel.
 
-If `protein_fastq_directory_path` is set, then `feature_reference_csv`, `protein_sample_name` and `rna_sample_name` are all required. Setting `feature_reference_csv` or `protein_sample_name` without `protein_fastq_directory_path` is an error. The workflow combines the RNA and protein inputs into `--fastqs <rna>,<protein>`, `--sample <rna_name>,<protein_name>` and `--feature-ref <csv>`; the RNA entry always comes first.
+If `protein_fastq_directory_path` is set, then `feature_reference_csv`, `protein_sample_name` and `rna_sample_name` are all required. Setting `feature_reference_csv` or `protein_sample_name` without `protein_fastq_directory_path` is an error. The workflow builds a `libraries.csv` (a Gene Expression row for the RNA FASTQs and an Antibody Capture row for the protein FASTQs, RNA first) and passes it to Space Ranger with `--libraries` and `--feature-ref`. Space Ranger does not accept protein FASTQs through `--fastqs`/`--sample`.
 
 ### Custom references
 - `transcriptome_path` (String): `gs://` path to a custom transcriptome, either a `.tar.gz` archive or an uncompressed directory containing a single `reference.json`.
